@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="theme-dark">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>越群山智能生活助手</title>
+    <!-- 关键首屏CSS：在JS加载前立即应用暗色背景，避免白屏闪烁 -->
+    <style>
+      html.theme-dark, html.theme-dark body {
+        background: #090818;
+      }
+      html.theme-light, html.theme-light body {
+        background: #f8fafc;
+      }
+      #app {
+        background: inherit;
+      }
+    </style>
+    <!-- 防闪烁脚本：在 Vue 渲染前立即应用存储的主题 -->
+    <script>
+      (function() {
+        var theme = localStorage.getItem('theme-mode');
+        if (theme === 'light') {
+          document.documentElement.classList.remove('theme-dark');
+          document.documentElement.classList.add('theme-light');
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

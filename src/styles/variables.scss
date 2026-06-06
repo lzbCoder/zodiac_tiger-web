@@ -1,0 +1,189 @@
+// ============================================
+// 越群山智能生活助手 — 双主题色彩体系
+// ============================================
+
+// -------- SCSS 变量（仅用于编译期，新代码请用 CSS 变量）--------
+$neon-cyan: #00EEFF;
+$neon-purple: #7B61FF;
+$neon-pink: #FF4499;
+$bg-deep-start: #090818;
+$bg-deep-end: #121025;
+$text-primary: #e0e0e0;
+$text-secondary: #8892b0;
+$glass-bg: rgba(18, 16, 37, 0.7);
+$glass-border: rgba(0, 238, 255, 0.15);
+
+// -------- 科技黑主题（默认）--------
+.theme-dark {
+  color-scheme: dark;
+  --color-primary: #00EEFF;
+  --color-primary-rgb: 0, 238, 255;
+  --color-primary-glow: rgba(0, 238, 255, 0.5);
+  --color-purple: #7B61FF;
+  --color-pink: #FF4499;
+  --color-success: #00ff88;
+  --color-danger: #ff4444;
+  --color-warning: #ffaa00;
+
+  // 背景
+  --bg-body-start: #090818;
+  --bg-body-end: #121025;
+  --bg-card: rgba(18, 16, 37, 0.7);
+  --bg-card-hover: rgba(0, 238, 255, 0.05);
+  --bg-sidebar: rgba(10, 10, 26, 0.9);
+  --bg-input: rgba(255, 255, 255, 0.05);
+  --bg-table-header: rgba(0, 238, 255, 0.1);
+  --bg-table-row-hover: rgba(0, 238, 255, 0.05);
+  --bg-dialog: rgba(18, 18, 36, 0.95);
+  --bg-dialog-overlay: rgba(0, 0, 0, 0.6);
+
+  // 文字
+  --text-primary: #ffffff;
+  --text-secondary: rgba(255, 255, 255, 0.6);
+  --text-highlight: #00EEFF;
+  --text-inverse: #1e293b;
+
+  // 边框
+  --border-color: rgba(0, 238, 255, 0.15);
+  --border-glow: rgba(0, 238, 255, 0.3);
+  --border-table: rgba(0, 238, 255, 0.2);
+
+  // 玻璃拟态
+  --glass-bg: rgba(18, 16, 37, 0.7);
+  --glass-border: rgba(0, 238, 255, 0.12);
+  --glass-shadow: 0 0 20px rgba(0, 238, 255, 0.05);
+
+  // 滚动条
+  --scrollbar-thumb: rgba(0, 238, 255, 0.3);
+  --scrollbar-thumb-hover: rgba(0, 238, 255, 0.5);
+
+  // 粒子
+  --particle-color: rgba(0, 238, 255, 0.4);
+  --particle-line: rgba(123, 97, 255, 0.08);
+
+  // 菜单
+  --menu-active-bg: rgba(0, 238, 255, 0.1);
+  --menu-hover-bg: rgba(0, 238, 255, 0.05);
+  --menu-icon-color: rgba(255, 255, 255, 0.7);
+
+  // 输入框
+  --input-bg: rgba(255, 255, 255, 0.05);
+  --input-border: rgba(0, 238, 255, 0.2);
+  --input-focus-border: rgba(0, 238, 255, 0.4);
+  --input-focus-shadow: 0 0 20px rgba(0, 238, 255, 0.1);
+
+  // 霓虹阴影（深色模式特有发光）
+  --neon-shadow: 0 0 20px;
+  --neon-shadow-lg: 0 0 30px;
+  --el-color-primary: #00EEFF;
+  --el-color-primary-light-3: #4df2ff;
+  --el-color-primary-light-5: #80f6ff;
+  --el-color-primary-light-7: #b3faff;
+  --el-color-primary-light-8: #ccfbff;
+  --el-color-primary-light-9: #e6fdff;
+  --el-color-primary-dark-2: #00bed0;
+  --el-color-success: #00ff88;
+  --el-color-warning: #ffaa00;
+  --el-color-danger: #ff4444;
+  --el-color-error: #ff4444;
+  --el-color-info: #8892b0;
+  --el-bg-color: #0d0d1a;
+  --el-bg-color-page: #090818;
+  --el-bg-color-overlay: #141428;
+  --el-text-color-primary: #ffffff;
+  --el-text-color-regular: #e0e0e0;
+  --el-text-color-secondary: rgba(255, 255, 255, 0.6);
+  --el-text-color-placeholder: rgba(255, 255, 255, 0.35);
+  --el-text-color-disabled: rgba(255, 255, 255, 0.25);
+  --el-border-color: rgba(0, 238, 255, 0.12);
+  --el-border-color-light: rgba(0, 238, 255, 0.08);
+  --el-border-color-lighter: rgba(0, 238, 255, 0.06);
+  --el-border-color-extra-light: rgba(0, 238, 255, 0.04);
+  --el-border-color-dark: rgba(0, 238, 255, 0.2);
+  --el-border-color-darker: rgba(0, 238, 255, 0.3);
+  --el-fill-color: rgba(255, 255, 255, 0.04);
+  --el-fill-color-light: rgba(0, 238, 255, 0.05);
+  --el-fill-color-lighter: rgba(255, 255, 255, 0.02);
+  --el-fill-color-extra-light: rgba(0, 238, 255, 0.02);
+  --el-fill-color-dark: rgba(0, 238, 255, 0.08);
+  --el-fill-color-darker: rgba(0, 238, 255, 0.12);
+  --el-fill-color-blank: #0d0d1a;
+  --el-mask-color: rgba(0, 0, 0, 0.6);
+  --el-box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+  --el-box-shadow-light: 0 2px 12px rgba(0, 0, 0, 0.2);
+  --el-box-shadow-lighter: 0 2px 12px rgba(0, 0, 0, 0.15);
+  --el-box-shadow-dark: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+// -------- 简约白主题 --------
+.theme-light {
+  color-scheme: light;
+  --color-primary: #0ea5e9;
+  --color-primary-rgb: 14, 165, 233;
+  --color-primary-glow: rgba(14, 165, 233, 0.3);
+  --color-purple: #6366f1;
+  --color-pink: #ec4899;
+  --color-success: #10b981;
+  --color-danger: #ef4444;
+  --color-warning: #f59e0b;
+
+  // 背景
+  --bg-body-start: #f8fafc;
+  --bg-body-end: #ffffff;
+  --bg-card: #ffffff;
+  --bg-card-hover: rgba(14, 165, 233, 0.04);
+  --bg-sidebar: #ffffff;
+  --bg-input: #f8fafc;
+  --bg-table-header: rgba(14, 165, 233, 0.08);
+  --bg-table-row-hover: rgba(14, 165, 233, 0.04);
+  --bg-dialog: #ffffff;
+  --bg-dialog-overlay: rgba(0, 0, 0, 0.3);
+
+  // 文字
+  --text-primary: #1e293b;
+  --text-secondary: #64748b;
+  --text-highlight: #0ea5e9;
+  --text-inverse: #ffffff;
+
+  // 边框
+  --border-color: rgba(14, 165, 233, 0.12);
+  --border-glow: rgba(14, 165, 233, 0.25);
+  --border-table: rgba(14, 165, 233, 0.15);
+
+  // 玻璃拟态（浅色模式降低透明度）
+  --glass-bg: rgba(255, 255, 255, 0.85);
+  --glass-border: rgba(14, 165, 233, 0.1);
+  --glass-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+
+  // 滚动条
+  --scrollbar-thumb: rgba(14, 165, 233, 0.2);
+  --scrollbar-thumb-hover: rgba(14, 165, 233, 0.35);
+
+  // 粒子
+  --particle-color: rgba(14, 165, 233, 0.2);
+  --particle-line: rgba(99, 102, 241, 0.04);
+
+  // 菜单
+  --menu-active-bg: rgba(14, 165, 233, 0.08);
+  --menu-hover-bg: rgba(14, 165, 233, 0.04);
+  --menu-icon-color: #64748b;
+
+  // 输入框
+  --input-bg: #f8fafc;
+  --input-border: rgba(14, 165, 233, 0.15);
+  --input-focus-border: rgba(14, 165, 233, 0.4);
+  --input-focus-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
+
+  // 无霓虹（浅色模式用柔和阴影）
+  --neon-shadow: 0 2px 8px;
+  --neon-shadow-lg: 0 4px 16px;
+}
+
+// -------- 兼容旧变量名（指向新语义变量）--------
+:root {
+  --neon-cyan: var(--color-primary);
+  --neon-purple: var(--color-purple);
+  --neon-pink: var(--color-pink);
+  --bg-deep-start: var(--bg-body-start);
+  --bg-deep-end: var(--bg-body-end);
+}

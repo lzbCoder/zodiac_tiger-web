@@ -1,0 +1,52 @@
+// 呼吸光效
+@keyframes breathe {
+  0%, 100% { opacity: 1; box-shadow: 0 0 10px var(--neon-cyan); }
+  50% { opacity: 0.7; box-shadow: 0 0 25px var(--neon-cyan); }
+}
+
+// 流光扫过
+@keyframes shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+// 霓虹脉冲
+@keyframes neon-pulse {
+  0%, 100% { border-color: rgba(0, 238, 255, 0.3); }
+  50% { border-color: rgba(0, 238, 255, 0.8); }
+}
+
+// 打字机光标
+@keyframes blink-cursor {
+  0%, 100% { border-right-color: var(--neon-cyan); }
+  50% { border-right-color: transparent; }
+}
+
+// 旋转加载
+@keyframes spin-glow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+// 卡片飞入
+@keyframes fly-in {
+  from { opacity: 0; transform: translateY(30px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+// 状态灯呼吸
+@keyframes dot-breathe-green {
+  0%, 100% { box-shadow: 0 0 4px #00ff88; }
+  50% { box-shadow: 0 0 12px #00ff88, 0 0 20px #00ff88; }
+}
+
+@keyframes dot-breathe-red {
+  0%, 100% { box-shadow: 0 0 4px #ff4444; }
+  50% { box-shadow: 0 0 12px #ff4444, 0 0 20px #ff4444; }
+}
+
+// 数字跳动
+@keyframes count-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}

@@ -1,0 +1,274 @@
+import { defineStore } from 'pinia'
+import { ref } from 'vue'
+import { getSessionList, deleteSession as deleteSessionApi } from '@/api/chat'
+
+export interface AgentStep {
+  step: string
+  name?: string
+  status: 'running' | 'completed' | 'fail' | 'error'
+  intent?: string
+  skills_count?: number
+  cost_ms?: number
+  detail?: string
+  tool_args?: string
+  cost_sec?: number
+  children?: AgentStep[]
+  _showTools?: boolean
+  _showDetail?: boolean
+}
+
+export interface ChatMessage {
+  role: 'user' | 'ai' | 'system'
+  content: string
+  charts?: any[]
+  chatId?: string
+  steps?: AgentStep[]
+}
+
+export interface Session {
+  id: string
+  title: string
+  lastTime: string
+  createTime: string
+}
+
+export const useChatStore = defineStore('chat', () => {
+  const sessions = ref<Session[]>([])
+  const currentSessionId = ref('')
+  const messages = ref<ChatMessage[]>([])
+  const isStreaming = ref(false)
+  const jumpToMsgIndex = ref<number | null>(null)
+
+  /** 用户手动选中的消息索引，null 表示自动跟随最新 */
+  const selectedMsgIndex = ref<number | null>(null)
+
+  function triggerJump(msgIndex: number) {
+    jumpToMsgIndex.value = msgIndex
+  }
+
+  function selectMsgIndex(idx: number) {
+    selectedMsgIndex.value = idx
+  }
+
+  function clearSelection() {
+    selectedMsgIndex.value = null
+  }
+
+  async function fetchSessions() {
+    try {
+      const res = await getSessionList()
+      sessions.value = ((res as any).data || []).map((s: any) => ({
+        id: s.session_id,
+        title: s.title,
+        lastTime: s.last_time,
+        createTime: s.create_time,
+      }))
+    } catch {
+      // silently fail if backend unreachable
+    }
+  }
+
+  async function removeSession(id: string) {
+    try {
+      await deleteSessionApi(id)
+      sessions.value = sessions.value.filter((s) => s.id !== id)
+      if (currentSessionId.value === id) {
+        currentSessionId.value = ''
+        messages.value = []
+      }
+    } catch {
+      // silently fail
+    }
+  }
+
+  function setSessionId(id: string) {
+    currentSessionId.value = id
+  }
+
+  function addSession(session: Session) {
+    sessions.value.unshift(session)
+  }
+
+  function updateSessionTitle(id: string, title: string) {
+    const s = sessions.value.find((x) => x.id === id)
+    if (s) s.title = title
+  }
+
+  /** execution_events → steps */
+  function _eventsToSteps(execEvents: any[]): AgentStep[] {
+    const steps: AgentStep[] = []
+    for (const ev of execEvents) {
+      if (ev.event_type !== 'progress' && ev.event_type !== 'step' && ev.event_type !== 'tool' && ev.event_type !== 'thought' && ev.event_type !== 'retrieval') continue
+      let st: string = ev.status
+      if (st === 'done') st = 'completed'
+
+      // 子步骤/tool/thought 归入父节点 children
+      const parentName = ev.parent_node || ''
+      if (parentName && (ev.event_type === 'tool' || ev.event_type === 'progress' || ev.event_type === 'thought')) {
+        const parent = _findStep(steps, parentName)
+        if (parent) {
+          if (!parent.children) parent.children = []
+          const childKey = ev.name
+          const childData: any = { step: ev.name, name: ev.name, status: st, cost_ms: ev.cost_ms, detail: ev.detail, tool_args: ev.tool_args, cost_sec: ev.cost_sec, react_round: ev.react_round }
+
+          // ReAct 轮次分组：插入中间节点
+          const rnd = ev.react_round
+          let targetChildren = parent.children
+          if (rnd) {
+            const roundKey = `第${rnd}轮ReAct循环`
+            let roundNode = parent.children.find((c: any) => c.name === roundKey)
+            if (!roundNode) {
+              roundNode = { step: roundKey, name: roundKey, status: 'completed', children: [] }
+              parent.children.push(roundNode)
+            }
+            if (!roundNode.children) roundNode.children = []
+            targetChildren = roundNode.children
+          }
+
+          const ci = targetChildren.findIndex((c: any) => (c.name || c.step) === childKey)
+          if (ci >= 0) {
+            targetChildren[ci] = { ...targetChildren[ci], ...childData, cost_ms: Math.max(targetChildren[ci].cost_ms || 0, ev.cost_ms || 0) }
+          } else {
+            targetChildren.push(childData)
+          }
+          continue
+        }
+      }
+      // tool 事件无父节点时跳过（不生成一级条目）
+      if (ev.event_type === 'tool') continue
+
+      const key = ev.name || ev.step
+      const existing = steps.findIndex(s => (s.name || s.step) === key)
+      const stepData: any = { step: key, name: key, status: st, cost_ms: ev.cost_ms, intent: ev.intent, detail: ev.detail }
+      if (existing >= 0) {
+        steps[existing] = { ...steps[existing], ...stepData, cost_ms: Math.max(steps[existing].cost_ms || 0, ev.cost_ms || 0) }
+      } else {
+        steps.push(stepData)
+      }
+    }
+    return steps
+  }
+
+  function _extractCharts(execEvents: any[]): any[] {
+    return execEvents
+      .filter((e: any) => e.event_type === 'chart')
+      .map((e: any) => { try { return JSON.parse(e.content) } catch { return null } })
+      .filter(Boolean)
+  }
+
+  function addMessage(msg: ChatMessage) {
+    const execEvents: any[] | undefined = (msg as any).execution_events
+    if (execEvents && execEvents.length > 0) {
+      const steps = _eventsToSteps(execEvents)
+      if (steps.length > 0) msg.steps = steps
+      const charts = _extractCharts(execEvents)
+      if (charts.length > 0) msg.charts = charts
+    }
+    messages.value.push(msg)
+  }
+
+  function setMessages(msgs: ChatMessage[]) {
+    for (const m of msgs) {
+      const execEvents: any[] | undefined = (m as any).execution_events
+      if (execEvents && execEvents.length > 0) {
+        const steps = _eventsToSteps(execEvents)
+        if (steps.length > 0) m.steps = steps
+        const charts = _extractCharts(execEvents)
+        if (charts.length > 0) m.charts = charts
+      }
+    }
+    messages.value = msgs
+  }
+
+  /** 向指定 AI 消息追加/更新步骤（SSE 流式时使用） */
+  /** 递归查找步骤（含 children） */
+  function _findStep(steps: AgentStep[], name: string): AgentStep | null {
+    for (const s of steps) {
+      if (s.name === name) return s
+      if (s.children) {
+        const found = _findStep(s.children, name)
+        if (found) return found
+      }
+    }
+    return null
+  }
+
+  function upsertStepForMessage(msgIdx: number, step: AgentStep) {
+    const msg = messages.value[msgIdx]
+    if (!msg || msg.role !== 'ai') return
+    if (!msg.steps) msg.steps = []
+    // tool/子步骤归入父节点 children
+    const parentNode = (step as any).parent_node
+    if (parentNode) {
+      const parent = _findStep(msg.steps, parentNode)
+      if (parent) {
+        if (!parent.children) parent.children = []
+        const key = step.name || step.step
+        const childData: any = { step: step.step, name: step.name, status: step.status, cost_ms: (step as any).cost_ms, detail: (step as any).detail, tool_args: (step as any).tool_args, cost_sec: (step as any).cost_sec, react_round: (step as any).react_round }
+
+        // ReAct 轮次分组：插入中间节点
+        const rnd = (step as any).react_round
+        let targetChildren = parent.children
+        if (rnd) {
+          const roundKey = `第${rnd}轮ReAct循环`
+          let roundNode = parent.children.find((c: any) => c.name === roundKey)
+          if (!roundNode) {
+            roundNode = { step: roundKey, name: roundKey, status: 'completed', children: [] }
+            parent.children.push(roundNode)
+          }
+          if (!roundNode.children) roundNode.children = []
+          targetChildren = roundNode.children
+        }
+
+        const ci = targetChildren.findIndex((c: any) => (c.name || c.step) === key)
+        if (ci >= 0) {
+          targetChildren[ci] = { ...targetChildren[ci], ...childData, cost_ms: Math.max(targetChildren[ci].cost_ms || 0, (step as any).cost_ms || 0) }
+        } else {
+          targetChildren.push(childData)
+        }
+        return
+      }
+    }
+    const key = step.name || step.step
+    const existing = msg.steps.findIndex((s) => (s.name || s.step) === key)
+    if (existing >= 0) {
+      msg.steps[existing] = { ...msg.steps[existing], ...step, cost_ms: Math.max(msg.steps[existing].cost_ms || 0, (step as any).cost_ms || 0) }
+    } else {
+      msg.steps.push(step)
+    }
+  }
+
+  /** 获取最后一条 AI 消息的 index，用于 SSE 步骤写入 */
+  function lastAiMsgIndex(): number {
+    for (let i = messages.value.length - 1; i >= 0; i--) {
+      if (messages.value[i].role === 'ai') return i
+    }
+    return -1
+  }
+
+  function resetChat() {
+    messages.value = []
+  }
+
+  return {
+    sessions,
+    currentSessionId,
+    messages,
+    isStreaming,
+    jumpToMsgIndex,
+    triggerJump,
+    selectedMsgIndex,
+    selectMsgIndex,
+    clearSelection,
+    fetchSessions,
+    setSessionId,
+    addSession,
+    updateSessionTitle,
+    removeSession,
+    addMessage,
+    setMessages,
+    upsertStepForMessage,
+    lastAiMsgIndex,
+    resetChat,
+  }
+})
