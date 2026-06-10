@@ -20,34 +20,6 @@ const isAi = computed(() => props.message.role === 'ai')
 const hasSteps = computed(() => isAi.value && props.message.steps && props.message.steps.length > 0)
 const isSelected = computed(() => store.selectedMsgIndex === props.msgIndex)
 const showTools = ref(false)
-// ---- 图表渲染 ----
-watch(() => props.message.charts, async (charts) => {
-  if (!charts || charts.length === 0 || !aiContentRef.value) return
-  await nextTick()
-  const html = aiContentRef.value.innerHTML
-  let chartIdx = 0
-  const finalHtml = html.replace(
-    /(<h[23][^>]*>[\s]*(?:图表展示|图表建议|Chart)[\s]*<\/h[23]>)/gi,
-    (match) => {
-      let inserts = ''
-      for (let i = 0; i < charts.length; i++) {
-        inserts += `<div class="chart-box" data-chart-idx="${chartIdx++}" style="height:280px;margin:12px 0"></div>`
-      }
-      return match + inserts
-    }
-  )
-  aiContentRef.value.innerHTML = finalHtml
-  const boxes = aiContentRef.value.querySelectorAll('.chart-box')
-  boxes.forEach((el) => {
-    const idx = parseInt(el.getAttribute('data-chart-idx') || '0')
-    if (charts[idx]) {
-      const chart = echarts.init(el as HTMLElement)
-      chart.setOption(charts[idx])
-      const ro = new ResizeObserver(() => chart.resize())
-      ro.observe(el as HTMLElement)
-    }
-  })
-}, { immediate: true })
 
 const toolSteps = computed(() => {
   return (props.message.steps || []).filter(s => s.status === 'running' || s.status === 'completed')
@@ -99,6 +71,179 @@ function attachCopyButtons() {
   })
 }
 
+// ---- 表格 → 图表增强 ----
+function parseTableData(tableEl: HTMLTableElement): { headers: string[]; rows: string[][] } | null {
+  const headers: string[] = []
+  const rows: string[][] = []
+  const ths = tableEl.querySelectorAll('thead th, thead td, tr:first-child th, tr:first-child td')
+  ths.forEach(th => headers.push(th.textContent?.trim() || ''))
+  const bodyRows = tableEl.querySelectorAll('tr')
+  bodyRows.forEach((tr, idx) => {
+    if (idx === 0 && tableEl.querySelector('thead')) return
+    const cells: string[] = []
+    tr.querySelectorAll('td, th').forEach(td => cells.push(td.textContent?.trim() || ''))
+    if (cells.length > 0 && cells.some(c => c !== '')) rows.push(cells)
+  })
+  if (headers.length === 0 || rows.length === 0) return null
+  return { headers, rows }
+}
+
+function isNumericColumn(rows: string[][], colIdx: number): boolean {
+  return rows.every(r => {
+    const raw = r[colIdx]
+    if (raw === undefined || raw === '' || raw === '-' || raw === '—') return false
+    // 去除逗号、百分号、加号、货币符号、中文数量单位（万、亿、千）、汉字
+    let cleaned = raw
+      .replace(/,/g, '')
+      .replace(/%/g, '')
+      .replace(/¥|￥|\$|€|£/g, '')
+      .replace(/[万亿千]/g, '')
+      .replace(/[元个件套台]/g, '')
+      .replace(/[＋＋＋]/g, '')
+      .trim()
+    // 去掉前导 + 号（"-3" keep, "+15" → "15"）
+    if (cleaned.startsWith('+')) cleaned = cleaned.slice(1)
+    return cleaned !== '' && !isNaN(Number(cleaned))
+  })
+}
+
+function detectChartType(headers: string[], rows: string[][]): 'bar' | 'line' | 'pie' {
+  const firstCol = headers[0]?.toLowerCase() || ''
+  const timeKeywords = ['年', '月', '日', '季度', 'week', 'month', 'year', 'date', 'time']
+  const isTimeSeries = timeKeywords.some(k => firstCol.includes(k))
+  if (isTimeSeries) return 'line'
+  // 检查数值列中是否有 % 号，或值之和接近 100 → 饼图
+  for (let c = 1; c < headers.length; c++) {
+    if (!isNumericColumn(rows, c)) continue
+    let hasPercent = false
+    let sum = 0
+    rows.forEach(r => {
+      const valStr = r[c] || ''
+      if (valStr.includes('%')) hasPercent = true
+      sum += parseFloat(valStr.replace(/,/g, '')) || 0
+    })
+    if (hasPercent || (sum > 90 && sum < 110)) return 'pie'
+  }
+  return 'bar'
+}
+
+let chartInstances: Map<HTMLElement, echarts.ECharts> = new Map()
+
+function enhanceTables() {
+  const container = aiContentRef.value
+  if (!container) { console.warn('enhanceTables: aiContentRef is null'); return }
+
+  const tables = container.querySelectorAll('table:not([data-enhanced])')
+  console.log('enhanceTables: found', tables.length, 'unenhanced tables')
+  tables.forEach(tableEl => {
+    try {
+      const parsed = parseTableData(tableEl as HTMLTableElement)
+      if (!parsed) { console.log('enhanceTables: parseTableData returned null'); return }
+      const { headers, rows } = parsed
+      console.log('enhanceTables: headers=', headers, 'rows=', rows.length)
+
+      // 找到数值列和标签列
+      const numericCols: number[] = []
+      for (let c = 1; c < headers.length; c++) {
+        if (isNumericColumn(rows, c)) numericCols.push(c)
+      }
+      console.log('enhanceTables: numericCols=', numericCols)
+      if (numericCols.length === 0) {
+        (tableEl as HTMLTableElement).setAttribute('data-enhanced', 'skip')
+        return
+      }
+
+    tableEl.setAttribute('data-enhanced', 'true')
+    const labelCol = 0
+
+    // 构建 wrapper 并替换 table（replaceChild 一步到位，避免 insertBefore 链式问题）
+    const wrapper = document.createElement('div')
+    wrapper.className = 'data-table-wrap'
+    wrapper.innerHTML = `
+      <div class="dt-toggle-bar">
+        <button class="dt-btn active" data-view="table">📋 表格</button>
+        <button class="dt-btn" data-view="chart">📊 图表</button>
+      </div>
+      <div class="dt-chart-area" style="display:none;"></div>
+      <div class="dt-table-area"></div>
+    `
+    tableEl.parentNode?.replaceChild(wrapper, tableEl)
+    const tableArea = wrapper.querySelector('.dt-table-area') as HTMLDivElement
+    tableArea.appendChild(tableEl as HTMLElement)
+    const toggleBar = wrapper.querySelector('.dt-toggle-bar') as HTMLDivElement
+    const btnTable = toggleBar.querySelector('[data-view="table"]') as HTMLButtonElement
+    const btnChart = toggleBar.querySelector('[data-view="chart"]') as HTMLButtonElement
+    const chartArea = wrapper.querySelector('.dt-chart-area') as HTMLDivElement
+
+    // toggle logic
+    const showTable = () => {
+      chartInstances.get(chartArea)?.dispose()
+      chartInstances.delete(chartArea)
+      chartArea.style.display = 'none'
+      tableArea.style.display = ''
+      btnTable.classList.add('active')
+      btnChart.classList.remove('active')
+    }
+    const showChart = () => {
+      tableArea.style.display = 'none'
+      chartArea.style.display = ''
+      btnChart.classList.add('active')
+      btnTable.classList.remove('active')
+
+      if (!chartInstances.has(chartArea)) {
+        const chart = echarts.init(chartArea)
+        chartInstances.set(chartArea, chart)
+
+        const chartType = detectChartType(headers, rows)
+        const labels = rows.map(r => r[labelCol] || '')
+        const seriesData: any[] = []
+        const series: any[] = []
+
+        numericCols.forEach((c, si) => {
+          const values = rows.map(r => parseFloat(r[c]?.replace(/,/g, '')) || 0)
+          if (chartType === 'pie') {
+            // 饼图：取第一个数值列
+            if (si === 0) {
+              labels.forEach((name, i) => {
+                seriesData.push({ name, value: values[i] })
+              })
+              series.push({
+                name: headers[c],
+                type: 'pie',
+                data: seriesData,
+                label: { show: true, formatter: '{b}: {d}%' },
+              })
+            }
+          } else {
+            seriesData.push({ name: headers[c], type: chartType, data: values })
+          }
+        })
+
+        const option: any = {
+          tooltip: { trigger: chartType === 'pie' ? 'item' : 'axis' },
+          grid: { left: 50, right: 20, top: 40, bottom: 40 },
+        }
+        if (chartType === 'pie') {
+          option.series = series
+        } else {
+          option.xAxis = { type: 'category', data: labels, axisLabel: { rotate: labels.length > 6 ? 45 : 0 } }
+          option.yAxis = { type: 'value' }
+          option.series = seriesData
+        }
+
+        chart.setOption(option)
+        const ro = new ResizeObserver(() => chart.resize())
+        ro.observe(chartArea)
+        ;(chart as any)._resizeObserver = ro
+      }
+    }
+
+    btnTable.onclick = showTable
+    btnChart.onclick = showChart
+    } catch (e) { console.error('enhanceTables table error:', e) }
+  })
+}
+
 function onMarkdownClick(e: MouseEvent) {
   const target = e.target as HTMLElement
   if (target.tagName === 'A' && target.getAttribute('href')?.startsWith('/api/file/download/')) {
@@ -113,7 +258,6 @@ function onMarkdownClick(e: MouseEvent) {
             }
           })
         }
-        // 文件存在 → 触发浏览器下载
         return res.blob().then(blob => {
           const url = URL.createObjectURL(blob)
           const a = document.createElement('a')
@@ -129,8 +273,13 @@ function onMarkdownClick(e: MouseEvent) {
   }
 }
 
-onMounted(() => { nextTick(attachCopyButtons) })
+onMounted(() => { nextTick(() => { attachCopyButtons(); if (!store.isStreaming) enhanceTables() }) })
+// 流式期间只做复制按钮（v-html 每次 patch 会摧毁 DOM 修改）
+// 流结束后触发表格增强
 watch(() => props.message.content, () => { nextTick(attachCopyButtons) })
+watch(() => store.isStreaming, (val) => {
+  if (!val) nextTick(() => enhanceTables())
+})
 </script>
 
 <template>
@@ -436,5 +585,62 @@ watch(() => props.message.content, () => { nextTick(attachCopyButtons) })
   color: var(--neon-cyan);
   border-color: rgba(0, 238, 255, 0.3);
   background: rgba(0, 0, 0, 0.7);
+}
+
+/* ---- 表格 → 图表增强 ----
+ * 这些样式不能加 scoped，因为 enhanceTables 创建的 DOM 在 markdown-body 外部
+ */
+.data-table-wrap {
+  margin: 12px 0;
+  border: 1px solid rgba(0, 238, 255, 0.15);
+  border-radius: 8px;
+  overflow: hidden;
+  animation: fadeIn 0.3s ease;
+}
+
+.dt-toggle-bar {
+  display: flex;
+  gap: 0;
+  background: rgba(0, 0, 0, 0.3);
+  border-bottom: 1px solid rgba(0, 238, 255, 0.1);
+}
+
+.dt-btn {
+  flex: 1;
+  padding: 6px 12px;
+  border: none;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.dt-btn:hover {
+  color: rgba(255, 255, 255, 0.8);
+  background: rgba(0, 238, 255, 0.05);
+}
+
+.dt-btn.active {
+  color: var(--neon-cyan);
+  background: rgba(0, 238, 255, 0.08);
+}
+
+.dt-chart-area {
+  height: 300px;
+  padding: 8px;
+}
+
+.dt-table-area {
+  padding: 4px;
+}
+
+.dt-table-area table {
+  margin: 0 !important;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 </style>

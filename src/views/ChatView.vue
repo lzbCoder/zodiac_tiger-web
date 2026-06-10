@@ -80,14 +80,6 @@ async function handleSend(text: string, enableSearch: boolean = false) {
               parent_node: event.parent_node,
               react_round: event.react_round,
             } as any)
-          } else if (event.type === 'chart') {
-            try {
-              const option = JSON.parse(event.content)
-              const m = store.messages[aiIdx]
-              if (m) {
-                if (m.charts) { m.charts.push(option) } else { m.charts = [option] }
-              }
-            } catch {}
           } else if (event.type === 'token') {
             aiContent += event.content
             const msg = store.messages[aiIdx]
@@ -165,10 +157,6 @@ async function resumeStream(params: any) {
             // 流结束，finally 块统一收尾
           } else if (event.type === 'result') {
             currentChatId.value = event.chat_id || ''
-            const msg = store.messages[aiIdx]
-            if (msg && event.charts) {
-              try { msg.charts = JSON.parse(event.charts) } catch {}
-            }
           } else if (event.type === 'error') {
             store.upsertStepForMessage(aiIdx, { step: `错误: ${event.content || event.name}`, name: '错误', status: 'fail' })
           }
