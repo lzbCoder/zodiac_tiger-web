@@ -14,7 +14,7 @@ const router = useRouter()
 const route = useRoute()
 
 const menuItems = [
-  { path: '/chat',     label: '智能聊天',   icon: ChatDotRound },
+  { path: '/chat',     label: '智能对话',   icon: ChatDotRound },
   { path: '/template', label: '提示词模板', icon: Tickets },
   { path: '/skill',    label: '技能管理',   icon: SetUp },
   { path: '/mcp',      label: 'MCP 服务',   icon: Monitor },

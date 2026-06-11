@@ -24,7 +24,6 @@ const categoryLabel = computed(() => {
     common: '通用',
     report: '数据报表',
     travel: '旅游规划',
-    code: '代码生成',
   }
   return map[props.template.category] || props.template.category
 })
@@ -34,7 +33,6 @@ const categoryColor = computed(() => {
     common: 'var(--neon-cyan)',
     report: 'var(--neon-purple)',
     travel: '#00ff88',
-    code: 'var(--neon-pink)',
   }
   return map[props.template.category] || 'var(--neon-cyan)'
 })
