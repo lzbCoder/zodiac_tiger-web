@@ -1,14 +1,43 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch, nextTick } from 'vue'
 import { Promotion, Connection } from '@element-plus/icons-vue'
+import { useChatStore } from '@/stores/chat'
+import { useIntentDisplayStore } from '@/stores/intent_display'
 
 const emit = defineEmits<{
   send: [text: string, enableSearch: boolean]
 }>()
 
+const chatStore = useChatStore()
+const intentStore = useIntentDisplayStore()
+
 const inputText = ref('')
 const enableSearch = ref(false)
 const canSend = computed(() => inputText.value.trim().length > 0)
+
+/** 动态占位：拼接三个能力名称 */
+const placeholderText = computed(() => {
+  const names = intentStore.list
+    .filter(i => i.enable)
+    .map(i => i.show_name.replace(/^[^\s]+\s/, ''))
+  if (names.length > 0) {
+    return `可发起「${names.join('」「')}」等需求，点击上方快捷按钮快速体验`
+  }
+  return '输入您的问题，Enter 发送，Shift+Enter 换行'
+})
+
+/** 监听 prefillText：快捷按钮/弹窗填入的示例提问 */
+watch(() => chatStore.prefillText, (val) => {
+  if (val) {
+    inputText.value = val
+    chatStore.setPrefill('')  // 消费后清空
+    nextTick(() => {
+      // 聚焦到输入框
+      const textarea = document.querySelector('.chat-textarea') as HTMLTextAreaElement
+      textarea?.focus()
+    })
+  }
+})
 
 function toggleSearch() {
   enableSearch.value = !enableSearch.value
@@ -37,7 +66,7 @@ function handleKeydown(e: KeyboardEvent) {
         <textarea
           v-model="inputText"
           class="chat-textarea"
-          placeholder="输入您的问题，Enter 发送，Shift+Enter 换行"
+          :placeholder="placeholderText"
           rows="3"
           @keydown="handleKeydown"
         />

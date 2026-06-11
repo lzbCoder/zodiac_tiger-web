@@ -7,6 +7,8 @@ import SessionList from '@/components/chat/SessionList.vue'
 import ChatWindow from '@/components/chat/ChatWindow.vue'
 import ChatInput from '@/components/chat/ChatInput.vue'
 import RightPanel from '@/components/chat/RightPanel.vue'
+import HelpFloating from '@/components/chat/HelpFloating.vue'
+import NewSessionDialog from '@/components/chat/NewSessionDialog.vue'
 
 const store = useChatStore()
 const chatWindowRef = ref<InstanceType<typeof ChatWindow>>()
@@ -193,8 +195,13 @@ async function resumeStream(params: any) {
         <ChatWindow ref="chatWindowRef" />
         <ChatInput @send="handleSend" />
       </div>
+      <!-- 能力选择弹窗：以对话区为居中参照，不侵入侧边栏 -->
+      <div class="dialog-anchor">
+        <NewSessionDialog v-model="store.showNewSessionDialog" />
+      </div>
     </div>
     <RightPanel />
+    <HelpFloating />
   </div>
 </template>
 
@@ -210,6 +217,26 @@ async function resumeStream(params: any) {
   flex-direction: column;
   min-width: 0;
   align-items: center;
+  position: relative; /* 弹窗绝对定位锚点 */
+}
+
+.dialog-anchor {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  /* pointer-events 不拦截，让弹窗内部可交互 */
+  pointer-events: none;
+}
+
+.dialog-anchor > * {
+  pointer-events: auto;
+}
+
+.dialog-anchor :deep(.el-overlay) {
+  position: absolute;
 }
 
 .chat-center-inner {

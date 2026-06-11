@@ -38,6 +38,14 @@ export const useChatStore = defineStore('chat', () => {
   const messages = ref<ChatMessage[]>([])
   const isStreaming = ref(false)
   const jumpToMsgIndex = ref<number | null>(null)
+  /** 预填输入框文本（快捷按钮/能力弹窗设置，ChatInput watch 并消费） */
+  const prefillText = ref('')
+  /** 新建会话能力选择弹窗 */
+  const showNewSessionDialog = ref(false)
+
+  function setPrefill(text: string) {
+    prefillText.value = text
+  }
 
   /** 用户手动选中的消息索引，null 表示自动跟随最新 */
   const selectedMsgIndex = ref<number | null>(null)
@@ -257,6 +265,9 @@ export const useChatStore = defineStore('chat', () => {
     isStreaming,
     jumpToMsgIndex,
     triggerJump,
+    prefillText,
+    setPrefill,
+    showNewSessionDialog,
     selectedMsgIndex,
     selectMsgIndex,
     clearSelection,

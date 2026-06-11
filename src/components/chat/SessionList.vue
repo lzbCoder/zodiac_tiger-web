@@ -72,6 +72,17 @@ const timeGroups = computed(() => {
 
 // ---- 新建会话 ----
 async function handleNewSession() {
+  const guideOff = localStorage.getItem('newSessionGuide') === 'off'
+  if (guideOff) {
+    // 直接创建
+    await createNewSession()
+  } else {
+    // 弹出能力选择弹窗
+    store.showNewSessionDialog = true
+  }
+}
+
+async function createNewSession() {
   try {
     const res = await newSession()
     const sid = res.data.session_id
@@ -206,7 +217,7 @@ async function handleDelete(s: Session) {
 
 // ---- 新对话按钮 ----
 .new-chat-area {
-  padding: 16px 14px 12px;
+  padding: 16px 14px 8px;
   flex-shrink: 0;
 }
 
@@ -232,6 +243,7 @@ async function handleDelete(s: Session) {
     box-shadow: 0 0 16px rgba(0, 238, 255, 0.2);
   }
 }
+
 
 // ---- 滚动区 ----
 .session-items {

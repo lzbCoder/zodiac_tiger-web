@@ -2,6 +2,9 @@
 import { ref, onMounted } from 'vue'
 import GlassCard from '@/components/common/GlassCard.vue'
 import { getLangSmithStatus, toggleLangSmith } from '@/api/settings'
+import { getIntentDisplayList, saveIntentConfig } from '@/api/intent_display'
+import type { IntentDisplayItem } from '@/api/intent_display'
+import { ElMessage } from 'element-plus'
 
 const activeMenu = ref('model')
 
@@ -11,6 +14,7 @@ const menus = [
   { key: 'log', label: '日志配置', icon: 'Document' },
   { key: 'theme', label: '主题设置', icon: 'Brush' },
   { key: 'feature', label: '特性开关', icon: 'SwitchFilled' },
+  { key: 'intent', label: '意图配置', icon: 'Opportunity' },
 ]
 
 const modelForm = ref({
@@ -58,7 +62,54 @@ async function handleToggleLangSmith(): Promise<boolean> {
   }
 }
 
-onMounted(fetchLangSmith)
+// ---- 意图展示配置 ----
+const intentList = ref<IntentDisplayItem[]>([])
+const intentEditVisible = ref(false)
+const intentEditForm = ref<IntentDisplayItem>({
+  intent_key: '', show_name: '', intent_desc: '', demo_input: '', icon: '', sort: 0, enable: 1,
+})
+
+async function fetchIntentList() {
+  try {
+    const res: any = await getIntentDisplayList()
+    intentList.value = (res.data || []) as IntentDisplayItem[]
+  } catch {
+    intentList.value = []
+  }
+}
+
+function editIntent(item: IntentDisplayItem) {
+  intentEditForm.value = { ...item }
+  intentEditVisible.value = true
+}
+
+async function saveIntent() {
+  try {
+    await saveIntentConfig(intentEditForm.value)
+    intentEditVisible.value = false
+    ElMessage.success('保存成功')
+    fetchIntentList()
+  } catch { /* handled */ }
+}
+
+async function toggleIntent(item: IntentDisplayItem) {
+  try {
+    await saveIntentConfig({ intent_key: item.intent_key, enable: item.enable ? 0 : 1 })
+    ElMessage.success(item.enable ? '已隐藏' : '已展示')
+    fetchIntentList()
+  } catch { /* handled */ }
+}
+
+function intentIcon(icon: string | null): string {
+  if (icon === 'map') return '🗺️'
+  if (icon === 'chart') return '📊'
+  return '💬'
+}
+
+onMounted(() => {
+  fetchLangSmith()
+  fetchIntentList()
+})
 </script>
 
 <template>
@@ -158,7 +209,63 @@ onMounted(fetchLangSmith)
               size="large"
             />
           </div>
+
         </GlassCard>
+
+        <!-- 意图配置 -->
+        <GlassCard v-if="activeMenu === 'intent'">
+          <h3 class="section-title">意图展示配置</h3>
+          <p style="color:var(--text-secondary);font-size:13px;margin-bottom:16px">管理用户侧展示的能力名称、描述、示例话术，修改后前端自动生效。</p>
+          <div v-for="item in intentList" :key="item.intent_key" class="feature-item">
+            <div class="feature-info">
+              <div class="feature-name">
+                <span style="margin-right:6px">{{ intentIcon(item.icon) }}</span>
+                {{ item.show_name }}
+                <el-tag size="small" style="margin-left:8px">{{ item.intent_key }}</el-tag>
+              </div>
+              <div class="feature-desc">{{ item.intent_desc }}</div>
+              <div class="feature-project">示例：<em>{{ item.demo_input }}</em></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;flex-shrink:0">
+              <el-switch
+                :model-value="item.enable === 1"
+                @change="toggleIntent(item)"
+                size="large"
+              />
+              <el-button size="small" text @click="editIntent(item)">编辑</el-button>
+            </div>
+          </div>
+        </GlassCard>
+
+        <!-- 意图配置编辑弹窗 -->
+        <el-dialog
+          v-model="intentEditVisible"
+          title="编辑意图展示配置"
+          width="560px"
+          :close-on-click-modal="false"
+        >
+          <el-form :model="intentEditForm" label-position="top">
+            <el-form-item label="意图Key">
+              <el-input v-model="intentEditForm.intent_key" disabled />
+            </el-form-item>
+            <el-form-item label="展示名称">
+              <el-input v-model="intentEditForm.show_name" placeholder="如：🗺️ 智能旅游规划" />
+            </el-form-item>
+            <el-form-item label="能力描述">
+              <el-input v-model="intentEditForm.intent_desc" type="textarea" :rows="3" />
+            </el-form-item>
+            <el-form-item label="示例话术">
+              <el-input v-model="intentEditForm.demo_input" type="textarea" :rows="2" />
+            </el-form-item>
+            <el-form-item label="排序">
+              <el-input-number v-model="intentEditForm.sort" :min="0" :max="99" />
+            </el-form-item>
+          </el-form>
+          <template #footer>
+            <el-button @click="intentEditVisible = false">取消</el-button>
+            <el-button type="primary" @click="saveIntent">保存</el-button>
+          </template>
+        </el-dialog>
       </div>
     </div>
   </div>
