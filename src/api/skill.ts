@@ -1,21 +1,44 @@
 import api from './index'
 
+export interface SkillInfo {
+  skill_key: string
+  skill_name: string
+  skill_desc: string | null
+  origin_name: string
+  origin_desc: string
+  folder_abs_path: string
+  enable_status: number
+  sort: number
+  create_time: string | null
+  update_time: string | null
+}
+
+export function uploadSkill(formData: FormData) {
+  return api.post('/skill/upload', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  })
+}
+
 export function getSkillList() {
   return api.get('/skill/list')
 }
 
-export function saveSkill(data: Record<string, any>) {
-  return api.post('/skill/save', data)
+export function editSkill(data: { skill_key: string; skill_name: string; skill_desc?: string | null }) {
+  return api.put('/skill/edit', data)
 }
 
-export function toggleSkillStatus(id: number, status: number) {
-  return api.post('/skill/status', { id, status })
+export function toggleSkillStatus(data: { skill_key: string; enable_status: number }) {
+  return api.put('/skill/status', data)
 }
 
-export function deleteSkill(id: number) {
-  return api.delete('/skill/delete', { params: { id } })
+export function deleteSkill(skill_key: string) {
+  return api.delete(`/skill/delete/${skill_key}`)
 }
 
-export function getAvailableSkills() {
-  return api.get('/skill/available')
+export function getSkillAgentBind(skill_key: string) {
+  return api.get('/skill/agent-bind', { params: { skill_key } })
+}
+
+export function updateSkillAgentBind(data: { skill_key: string; agent_codes: string[] }) {
+  return api.put('/skill/agent-bind', data)
 }
