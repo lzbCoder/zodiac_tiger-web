@@ -25,7 +25,7 @@ const router = createRouter({
     {
       path: '/mcp',
       name: 'Mcp',
-      component: () => import('@/views/McpView.vue'),
+      component: () => import('@/views/McpServerView.vue'),
     },
     {
       path: '/file',
