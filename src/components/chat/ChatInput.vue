@@ -6,6 +6,7 @@ import { useIntentDisplayStore } from '@/stores/intent_display'
 
 const emit = defineEmits<{
   send: [text: string, enableSearch: boolean]
+  stop: []
 }>()
 
 const chatStore = useChatStore()
@@ -13,9 +14,8 @@ const intentStore = useIntentDisplayStore()
 
 const inputText = ref('')
 const enableSearch = ref(false)
-const canSend = computed(() => inputText.value.trim().length > 0)
+const canSend = computed(() => inputText.value.trim().length > 0 && !chatStore.isStreaming)
 
-/** 动态占位：拼接三个能力名称 */
 const placeholderText = computed(() => {
   const names = intentStore.list
     .filter(i => i.enable)
@@ -26,13 +26,11 @@ const placeholderText = computed(() => {
   return '输入您的问题，Enter 发送，Shift+Enter 换行'
 })
 
-/** 监听 prefillText：快捷按钮/弹窗填入的示例提问 */
 watch(() => chatStore.prefillText, (val) => {
   if (val) {
     inputText.value = val
-    chatStore.setPrefill('')  // 消费后清空
+    chatStore.setPrefill('')
     nextTick(() => {
-      // 聚焦到输入框
       const textarea = document.querySelector('.chat-textarea') as HTMLTextAreaElement
       textarea?.focus()
     })
@@ -45,9 +43,13 @@ function toggleSearch() {
 
 function handleSend() {
   const text = inputText.value.trim()
-  if (!text) return
+  if (!text || chatStore.isStreaming) return
   emit('send', text, enableSearch.value)
   inputText.value = ''
+}
+
+function handleStop() {
+  emit('stop')
 }
 
 function handleKeydown(e: KeyboardEvent) {
@@ -62,16 +64,36 @@ function handleKeydown(e: KeyboardEvent) {
   <div class="chat-input-wrapper">
     <div class="chat-input-inner">
       <div class="chat-input-box">
-      <div class="input-row">
-        <textarea
-          v-model="inputText"
-          class="chat-textarea"
-          :placeholder="placeholderText"
-          rows="3"
-          @keydown="handleKeydown"
-        />
+        <div class="input-row">
+          <textarea
+            v-model="inputText"
+            class="chat-textarea"
+            :placeholder="placeholderText"
+            rows="3"
+            @keydown="handleKeydown"
+          />
+        </div>
+        <div class="input-toolbar">
+          <button class="search-toggle" :class="{ active: enableSearch }" @click="toggleSearch">
+            <el-icon :size="14"><Connection /></el-icon>
+            <span>联网搜索</span>
+          </button>
+        </div>
+
+        <!-- 任务执行中：红色终止按钮 -->
         <button
-          class="send-btn"
+          v-if="chatStore.isStreaming"
+          class="action-btn stop-btn"
+          title="终止任务"
+          @click="handleStop"
+        >
+          <span class="stop-square" />
+        </button>
+
+        <!-- 空闲：发送按钮 -->
+        <button
+          v-else
+          class="action-btn send-btn"
           :class="{ disabled: !canSend }"
           :disabled="!canSend"
           @click="handleSend"
@@ -79,13 +101,6 @@ function handleKeydown(e: KeyboardEvent) {
           <el-icon :size="20"><Promotion /></el-icon>
         </button>
       </div>
-      <div class="input-toolbar">
-        <button class="search-toggle" :class="{ active: enableSearch }" @click="toggleSearch">
-          <el-icon :size="14"><Connection /></el-icon>
-          <span>联网搜索</span>
-        </button>
-      </div>
-    </div>
     </div>
   </div>
 </template>
@@ -105,12 +120,13 @@ function handleKeydown(e: KeyboardEvent) {
 }
 
 .chat-input-box {
+  position: relative;
   display: flex;
   flex-direction: column;
   background: rgba(18, 16, 37, 0.8);
   border: 1px solid rgba(0, 238, 255, 0.15);
   border-radius: 12px;
-  padding: 12px 16px 10px;
+  padding: 12px 68px 10px 16px;
   transition: all 0.3s;
 
   &:focus-within {
@@ -119,16 +135,32 @@ function handleKeydown(e: KeyboardEvent) {
   }
 }
 
+.input-row {
+  display: flex;
+}
+
 .input-toolbar {
   display: flex;
   align-items: center;
   gap: 8px;
+  margin-top: 6px;
 }
 
-.input-row {
-  display: flex;
-  align-items: flex-end;
-  gap: 12px;
+.chat-textarea {
+  flex: 1;
+  width: 100%;
+  background: transparent;
+  border: none;
+  outline: none;
+  resize: none;
+  color: var(--text-primary);
+  font-size: 14px;
+  line-height: 1.6;
+  font-family: inherit;
+
+  &::placeholder {
+    color: var(--text-secondary);
+  }
 }
 
 .search-toggle {
@@ -157,35 +189,27 @@ function handleKeydown(e: KeyboardEvent) {
   }
 }
 
-.chat-textarea {
-  flex: 1;
-  background: transparent;
-  border: none;
-  outline: none;
-  resize: none;
-  color: var(--text-primary);
-  font-size: 14px;
-  line-height: 1.6;
-  font-family: inherit;
-
-  &::placeholder {
-    color: var(--text-secondary);
-  }
-}
-
-.send-btn {
+// 发送 / 终止按钮共用基础
+.action-btn {
+  position: absolute;
+  right: 14px;
+  bottom: 10px;
   width: 40px;
   height: 40px;
   border: none;
   border-radius: 10px;
-  background: linear-gradient(135deg, var(--color-primary), var(--color-purple));
-  color: #fff;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.3s;
+  transition: all 0.25s;
   flex-shrink: 0;
+}
+
+// 发送按钮
+.send-btn {
+  background: linear-gradient(135deg, var(--color-primary), var(--color-purple));
+  color: #fff;
 
   &:hover:not(.disabled) {
     box-shadow: 0 0 20px rgba(0, 238, 255, 0.4);
@@ -202,5 +226,32 @@ function handleKeydown(e: KeyboardEvent) {
     cursor: not-allowed;
     pointer-events: none;
   }
+}
+
+// 终止按钮
+.stop-btn {
+  background: rgba(255, 50, 50, 0.12);
+  border: 1.5px solid rgba(255, 50, 50, 0.45);
+  color: #ff3737;
+
+  &:hover {
+    background: rgba(255, 50, 50, 0.22);
+    border-color: rgba(255, 50, 50, 0.7);
+    box-shadow: 0 0 16px rgba(255, 50, 50, 0.28);
+    transform: scale(1.05);
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+}
+
+// 终止方块图形
+.stop-square {
+  width: 14px;
+  height: 14px;
+  background: currentColor;
+  border-radius: 2px;
+  flex-shrink: 0;
 }
 </style>

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import type { AgentStep } from '@/stores/chat'
-import { ArrowDown, ArrowUp, Loading, CircleCheckFilled, CircleCloseFilled } from '@element-plus/icons-vue'
+import { ArrowDown, ArrowUp, Loading, CircleCheckFilled, CircleCloseFilled, Clock, Remove } from '@element-plus/icons-vue'
 
 defineProps<{
   steps: AgentStep[]
@@ -41,8 +41,10 @@ function toggle() {
         >
           <div class="step-line" v-if="idx < steps.length - 1" />
           <div class="step-dot">
-            <el-icon v-if="step.status === 'running'" class="is-loading"><Loading /></el-icon>
+            <el-icon v-if="step.status === 'running' || step.status === 'in_progress'" class="is-loading"><Loading /></el-icon>
             <el-icon v-else-if="step.status === 'completed'"><CircleCheckFilled /></el-icon>
+            <el-icon v-else-if="step.status === 'pending'"><Clock /></el-icon>
+            <el-icon v-else-if="step.status === 'terminated'"><Remove /></el-icon>
             <el-icon v-else><CircleCloseFilled /></el-icon>
           </div>
           <div class="step-info">
@@ -77,7 +79,7 @@ function toggle() {
                     </div>
                     <div v-if="t._showTools" class="tool-round-list">
                       <div v-for="(rc, ri) in t.children" :key="ri" class="tool-child-item">
-                        <span class="tci-status">{{ rc.status === 'completed' ? '✅' : '⏳' }}</span>
+                        <span class="tci-status">{{ rc.status === 'completed' ? '✅' : rc.status === 'in_progress' ? '⚙️' : '⏳' }}</span>
                         <span class="tci-name">{{ rc.name || rc.step }}</span>
                         <span v-if="rc.cost_ms" class="tci-cost">{{ (rc.cost_ms / 1000).toFixed(1) }}s</span>
                         <div v-if="rc.detail" class="tci-detail-fold">
@@ -92,7 +94,7 @@ function toggle() {
                   </div>
                   <!-- 普通子项 -->
                   <div v-else class="tool-child-item">
-                    <span class="tci-status">{{ t.status === 'completed' ? '✅' : '⏳' }}</span>
+                    <span class="tci-status">{{ t.status === 'completed' ? '✅' : t.status === 'in_progress' ? '⚙️' : '⏳' }}</span>
                     <span class="tci-name">{{ t.name || t.step }}</span>
                     <span v-if="t.cost_ms" class="tci-cost">{{ (t.cost_ms / 1000).toFixed(1) }}s</span>
                     <div v-if="t.detail" class="tci-detail-fold">
@@ -186,9 +188,24 @@ function toggle() {
     .step-dot { color: #00ff88; }
   }
 
+  &.step-in_progress {
+    .step-dot { color: var(--neon-cyan); }
+    .step-name { color: var(--neon-cyan); }
+  }
+
+  &.step-pending {
+    .step-dot { color: rgba(255, 255, 255, 0.35); }
+    .step-name { color: rgba(255, 255, 255, 0.5); }
+  }
+
   &.step-fail {
     .step-dot { color: #ff4444; }
     .step-name { color: #ff4444; }
+  }
+
+  &.step-terminated {
+    .step-dot { color: #ff9500; }
+    .step-name { color: rgba(255, 255, 255, 0.38); text-decoration: line-through; }
   }
 }
 

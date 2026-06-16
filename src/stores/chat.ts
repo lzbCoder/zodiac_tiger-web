@@ -5,7 +5,7 @@ import { getSessionList, deleteSession as deleteSessionApi } from '@/api/chat'
 export interface AgentStep {
   step: string
   name?: string
-  status: 'running' | 'completed' | 'fail' | 'error'
+  status: 'running' | 'completed' | 'fail' | 'error' | 'pending' | 'in_progress' | 'terminated'
   intent?: string
   skills_count?: number
   cost_ms?: number
@@ -102,10 +102,38 @@ export const useChatStore = defineStore('chat', () => {
     if (s) s.title = title
   }
 
+  /** plan 步骤（pending/in_progress/done）→ AgentStep 子项 */
+  const PLAN_KEY = '📋 执行计划'
+  function _makePlanChildren(rawSteps: any[]): AgentStep[] {
+    return rawSteps.map((s: any) => ({
+      step: s.description,
+      name: `plan-${s.index}`,
+      status: s.status === 'done' ? 'completed' : s.status, // pending | in_progress | completed
+    })) as AgentStep[]
+  }
+
+  /** 将一份计划清单 upsert 进给定 steps 数组（流式与历史还原共用） */
+  function _upsertPlanInto(stepsArr: AgentStep[], rawSteps: any[]) {
+    const allDone = rawSteps.every((s: any) => s.status === 'done')
+    const planStep: any = {
+      step: PLAN_KEY, name: PLAN_KEY,
+      status: allDone ? 'completed' : 'running',
+      children: _makePlanChildren(rawSteps),
+      _showTools: true,
+    }
+    const idx = stepsArr.findIndex((s) => (s.name || s.step) === PLAN_KEY)
+    if (idx >= 0) stepsArr[idx] = { ...stepsArr[idx], ...planStep }
+    else stepsArr.push(planStep)
+  }
+
   /** execution_events → steps */
   function _eventsToSteps(execEvents: any[]): AgentStep[] {
     const steps: AgentStep[] = []
     for (const ev of execEvents) {
+      if (ev.event_type === 'plan' && Array.isArray(ev.steps)) {
+        _upsertPlanInto(steps, ev.steps)
+        continue
+      }
       if (ev.event_type !== 'progress' && ev.event_type !== 'step' && ev.event_type !== 'tool' && ev.event_type !== 'thought' && ev.event_type !== 'retrieval') continue
       let st: string = ev.status
       if (st === 'done') st = 'completed'
@@ -246,6 +274,14 @@ export const useChatStore = defineStore('chat', () => {
     }
   }
 
+  /** 写入/更新复杂任务的执行计划（SSE plan 事件 + 历史还原共用渲染结构） */
+  function upsertPlanForMessage(msgIdx: number, rawSteps: any[]) {
+    const msg = messages.value[msgIdx]
+    if (!msg || msg.role !== 'ai' || !Array.isArray(rawSteps) || rawSteps.length === 0) return
+    if (!msg.steps) msg.steps = []
+    _upsertPlanInto(msg.steps, rawSteps)
+  }
+
   /** 获取最后一条 AI 消息的 index，用于 SSE 步骤写入 */
   function lastAiMsgIndex(): number {
     for (let i = messages.value.length - 1; i >= 0; i--) {
@@ -279,6 +315,7 @@ export const useChatStore = defineStore('chat', () => {
     addMessage,
     setMessages,
     upsertStepForMessage,
+    upsertPlanForMessage,
     lastAiMsgIndex,
     resetChat,
   }
