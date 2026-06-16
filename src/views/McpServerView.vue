@@ -252,12 +252,18 @@ async function handleSaveBind() {
 }
 
 // 连接状态映射
-function connectStatusLabel(status: number) {
-  return { 0: '未检测', 1: '在线正常', 2: '连接异常' }[status] ?? '未知'
+const STATUS_KEY: Record<number, string> = { 0: 'pending', 1: 'online', 2: 'error' }
+const STATUS_SHORT: Record<number, string> = { 0: '未检测', 1: '在线', 2: '异常' }
+const STATUS_COLOR: Record<number, string> = { 0: '#666', 1: '#00ff88', 2: '#ff4d4f' }
+const STATUS_TIP: Record<number, string> = {
+  0: '尚未执行连通性检测',
+  1: '服务连接正常，可正常调用工具',
+  2: '连接失败，可点击「测试连接」重新检测',
 }
-function connectStatusColor(status: number) {
-  return { 0: '#888', 1: '#00ff88', 2: '#ff4d4f' }[status] ?? '#888'
-}
+function connectStatusKey(status: number) { return STATUS_KEY[status] ?? 'pending' }
+function connectStatusShort(status: number) { return STATUS_SHORT[status] ?? '未知' }
+function connectStatusColor(status: number) { return STATUS_COLOR[status] ?? '#666' }
+function connectStatusTip(status: number) { return STATUS_TIP[status] ?? '' }
 
 onMounted(fetchList)
 </script>
@@ -295,16 +301,21 @@ onMounted(fetchList)
         <el-table-column prop="display_name" label="展示名称" width="160" />
         <el-table-column label="接入地址" width="520">
           <template #default="{ row }">
-            <el-tooltip :content="row.endpoint_url" placement="top" :show-after="400">
+            <el-tooltip :content="row.endpoint_url" placement="top" :show-after="400" popper-class="desc-tooltip">
               <span class="url-cell">{{ row.endpoint_url }}</span>
             </el-tooltip>
           </template>
         </el-table-column>
         <el-table-column label="连接状态" width="150">
           <template #default="{ row }">
-            <span :style="{ color: connectStatusColor(row.connect_status), fontWeight: 600 }">
-              {{ connectStatusLabel(row.connect_status) }}
-            </span>
+            <el-tooltip :content="connectStatusTip(row.connect_status)" placement="top" :show-after="200" popper-class="desc-tooltip">
+              <div class="status-cell" :class="{ 'is-disabled': row.enable_status === 0 }">
+                <span class="status-dot" :class="`status-dot--${connectStatusKey(row.connect_status)}`" />
+                <span class="status-text" :style="{ color: connectStatusColor(row.connect_status) }">
+                  {{ connectStatusShort(row.connect_status) }}
+                </span>
+              </div>
+            </el-tooltip>
           </template>
         </el-table-column>
         <el-table-column label="启用" width="100" align="center">
@@ -434,7 +445,13 @@ onMounted(fetchList)
       </div>
       <el-table v-loading="toolLoading" :data="tools" size="small">
         <el-table-column prop="tool_name" label="工具名称" width="180" />
-        <el-table-column prop="tool_desc" label="描述" min-width="200" show-overflow-tooltip />
+        <el-table-column label="描述" min-width="200">
+          <template #default="{ row }">
+            <el-tooltip :content="row.tool_desc || ''" placement="top" :show-after="200" popper-class="desc-tooltip" :disabled="!row.tool_desc">
+              <span class="desc-cell">{{ row.tool_desc || '—' }}</span>
+            </el-tooltip>
+          </template>
+        </el-table-column>
         <el-table-column label="入参 Schema" min-width="160">
           <template #default="{ row }">
             <template v-if="row.input_schema">
@@ -548,6 +565,43 @@ onMounted(fetchList)
   cursor: default;
 }
 
+.status-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: opacity 0.2s;
+
+  &.is-disabled {
+    opacity: 0.35;
+  }
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+
+  &--online {
+    background: #00ff88;
+    box-shadow: 0 0 6px rgba(0, 255, 136, 0.55);
+  }
+
+  &--error {
+    background: #ff4d4f;
+    box-shadow: 0 0 6px rgba(255, 77, 79, 0.55);
+  }
+
+  &--pending {
+    background: #555;
+  }
+}
+
+.status-text {
+  font-size: 13px;
+  font-weight: 500;
+}
+
 .action-icons {
   display: flex;
   align-items: center;
@@ -641,6 +695,13 @@ onMounted(fetchList)
   color: #555;
 }
 
+.desc-cell {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .bind-desc {
   font-size: 13px;
   color: #888;
@@ -659,5 +720,23 @@ onMounted(fetchList)
   background: rgba(0, 238, 255, 0.04);
   border: 1px solid rgba(0, 238, 255, 0.1);
   border-radius: 6px;
+}
+</style>
+
+<style lang="scss">
+.desc-tooltip.el-popper {
+  max-width: 320px !important;
+  background: #1e2336 !important;
+  color: #e0e0e0 !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  white-space: normal !important;
+  word-break: break-word !important;
+  line-height: 1.7 !important;
+  font-size: 13px !important;
+
+  .el-popper__arrow::before {
+    background: #1e2336 !important;
+    border-color: rgba(255, 255, 255, 0.12) !important;
+  }
 }
 </style>

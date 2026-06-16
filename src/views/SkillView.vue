@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { Edit, Connection, Delete, UploadFilled } from '@element-plus/icons-vue'
+import { Edit, Connection, Delete, UploadFilled, Document, CircleClose } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import GlassCard from '@/components/common/GlassCard.vue'
 import NeonButton from '@/components/common/NeonButton.vue'
@@ -69,30 +69,47 @@ const uploadVisible = ref(false)
 const uploadLoading = ref(false)
 const uploadForm = ref({ skill_name: '', skill_desc: '' })
 const uploadFile = ref<File | null>(null)
-const uploadRef = ref()
+const isDragging = ref(false)
+const fileInputRef = ref<HTMLInputElement>()
 
 const canUpload = computed(() =>
   uploadForm.value.skill_name.trim() && uploadFile.value !== null,
 )
 
-function handleBeforeUpload(file: File) {
-  const ext = file.name.split('.').pop()?.toLowerCase()
-  if (ext !== 'zip') {
-    ElMessage.error('仅支持 .zip 格式')
-    return false
-  }
-  uploadFile.value = file
-  return false // 手动控制上传
-}
-
-function handleRemoveFile() {
-  uploadFile.value = null
-}
-
 function openUploadDialog() {
   uploadForm.value = { skill_name: '', skill_desc: '' }
   uploadFile.value = null
+  isDragging.value = false
   uploadVisible.value = true
+}
+
+function triggerFilePicker() {
+  fileInputRef.value?.click()
+}
+
+function _acceptFile(file: File) {
+  const ext = file.name.split('.').pop()?.toLowerCase()
+  if (ext !== 'zip') {
+    ElMessage.error('仅支持 .zip 格式')
+    return
+  }
+  uploadFile.value = file
+}
+
+function handleFileInput(e: Event) {
+  const input = e.target as HTMLInputElement
+  if (input.files?.[0]) _acceptFile(input.files[0])
+  input.value = '' // 允许重复选同一文件（下次删除后再选）
+}
+
+function handleDrop(e: DragEvent) {
+  isDragging.value = false
+  const file = e.dataTransfer?.files?.[0]
+  if (file) _acceptFile(file)
+}
+
+function removeUploadFile() {
+  uploadFile.value = null
 }
 
 async function handleUpload() {
@@ -222,15 +239,21 @@ onMounted(fetchList)
             <span class="card-name">{{ skill.skill_name }}</span>
             <span class="card-key">{{ skill.skill_key }}</span>
           </div>
+        </div>
+        <el-tooltip
+          :content="skill.skill_desc || skill.origin_desc || '暂无描述'"
+          placement="top"
+          effect="dark"
+          :show-after="200"
+          popper-class="desc-tooltip"
+        >
+          <p class="card-desc">{{ skill.skill_desc || skill.origin_desc || '暂无描述' }}</p>
+        </el-tooltip>
+        <div class="card-footer">
           <el-switch
             :model-value="skill.enable_status === 1"
             @change="(val: boolean) => handleToggle(skill, val)"
-            active-color="#00c8ff"
           />
-        </div>
-        <p class="card-desc">{{ skill.skill_desc || skill.origin_desc || '暂无描述' }}</p>
-        <div class="card-footer">
-          <span class="card-time">{{ skill.create_time }}</span>
           <div class="card-actions">
             <el-tooltip content="编辑信息" placement="top">
               <el-button :icon="Edit" circle size="small" @click="openEditDialog(skill)" />
@@ -268,23 +291,44 @@ onMounted(fetchList)
           />
         </el-form-item>
         <el-form-item label="技能压缩包" required>
-          <el-upload
-            ref="uploadRef"
-            drag
-            :auto-upload="false"
-            :before-upload="handleBeforeUpload"
-            :on-change="(f: any) => { uploadFile = f.raw }"
-            :on-remove="handleRemoveFile"
+          <!-- 隐藏的原生 file input -->
+          <input
+            ref="fileInputRef"
+            type="file"
             accept=".zip"
-            :limit="1"
-            class="skill-upload"
+            style="display: none"
+            @change="handleFileInput"
+          />
+          <!-- 自定义拖拽区 -->
+          <div
+            class="upload-zone"
+            :class="{
+              'upload-zone--filled': uploadFile,
+              'upload-zone--dragging': isDragging && !uploadFile,
+            }"
+            @click="!uploadFile && triggerFilePicker()"
+            @dragover.prevent="!uploadFile && (isDragging = true)"
+            @dragleave.prevent="isDragging = false"
+            @drop.prevent="handleDrop"
           >
-            <el-icon class="el-icon--upload"><upload-filled /></el-icon>
-            <div class="el-upload__text">拖拽文件到此处，或 <em>点击选择</em></div>
-            <template #tip>
-              <div class="el-upload__tip">仅支持 .zip 格式，压缩包内需包含 SKILL.md</div>
+            <template v-if="uploadFile">
+              <el-icon class="zone-icon zone-icon--file"><Document /></el-icon>
+              <span class="zone-filename">{{ uploadFile.name }}</span>
+              <el-button
+                class="zone-delete"
+                :icon="CircleClose"
+                circle
+                size="small"
+                type="danger"
+                @click.stop="removeUploadFile"
+              />
             </template>
-          </el-upload>
+            <template v-else>
+              <el-icon class="zone-icon"><UploadFilled /></el-icon>
+              <span class="zone-text">拖拽文件到此处，或 <em>点击选择</em></span>
+              <span class="zone-tip">仅支持 .zip 格式，压缩包内需包含 SKILL.md</span>
+            </template>
+          </div>
         </el-form-item>
       </el-form>
       <template #footer>
@@ -392,20 +436,21 @@ onMounted(fetchList)
 
 .skill-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 16px;
   margin-top: 8px;
 }
 
 .skill-card {
-  padding: 18px 20px;
+  padding: 16px;
   display: flex;
   flex-direction: column;
   gap: 10px;
-  transition: box-shadow 0.2s;
+  transition: all 0.3s ease;
 
   &:hover {
-    box-shadow: 0 0 16px rgba(0, 200, 255, 0.15);
+    transform: translateY(-4px);
+    border-color: rgba(0, 238, 255, 0.3);
   }
 }
 
@@ -425,22 +470,23 @@ onMounted(fetchList)
 .card-name {
   font-size: 15px;
   font-weight: 600;
-  color: var(--text-primary, #e0e0e0);
+  color: var(--text-primary);
 }
 
 .card-key {
   font-size: 11px;
-  color: var(--text-secondary, #888);
+  color: var(--text-secondary);
   font-family: 'Courier New', monospace;
 }
 
 .card-desc {
-  font-size: 13px;
-  color: var(--text-secondary, #aaa);
-  line-height: 1.5;
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.6;
   margin: 0;
+  min-height: 40px;
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -450,22 +496,88 @@ onMounted(fetchList)
   align-items: center;
   justify-content: space-between;
   margin-top: auto;
-  padding-top: 8px;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
 
-.card-time {
-  font-size: 11px;
-  color: var(--text-secondary, #666);
-}
 
 .card-actions {
   display: flex;
   gap: 4px;
 }
 
-.skill-upload {
+// ---- 自定义上传区 ----
+.upload-zone {
   width: 100%;
+  min-height: 120px;
+  border: 1.5px dashed rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 20px;
+  box-sizing: border-box;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+  position: relative;
+
+  &:hover:not(.upload-zone--filled) {
+    border-color: rgba(0, 200, 255, 0.5);
+    background: rgba(0, 200, 255, 0.04);
+  }
+
+  &.upload-zone--dragging {
+    border-color: #00c8ff;
+    background: rgba(0, 200, 255, 0.08);
+  }
+
+  &.upload-zone--filled {
+    cursor: default;
+    border-style: solid;
+    border-color: rgba(0, 200, 255, 0.3);
+    background: rgba(0, 200, 255, 0.04);
+  }
+}
+
+.zone-icon {
+  font-size: 36px;
+  color: rgba(255, 255, 255, 0.3);
+
+  &.zone-icon--file {
+    color: #00c8ff;
+    font-size: 32px;
+  }
+}
+
+.zone-text {
+  font-size: 13px;
+  color: var(--text-secondary, #aaa);
+
+  em {
+    font-style: normal;
+    color: #00c8ff;
+  }
+}
+
+.zone-tip {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.zone-filename {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary, #e0e0e0);
+  max-width: 300px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.zone-delete {
+  position: absolute;
+  top: 10px;
+  right: 10px;
 }
 
 .skill-key-readonly {
@@ -495,5 +607,24 @@ onMounted(fetchList)
   padding: 10px 14px;
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.04);
+}
+</style>
+
+<style lang="scss">
+/* 描述悬浮提示 - 全局样式，穿透 teleport */
+.desc-tooltip.el-popper {
+  max-width: 320px !important;
+  background: #1e2336 !important;
+  color: #e0e0e0 !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  white-space: normal !important;
+  word-break: break-word !important;
+  line-height: 1.7 !important;
+  font-size: 13px !important;
+
+  .el-popper__arrow::before {
+    background: #1e2336 !important;
+    border-color: rgba(255, 255, 255, 0.12) !important;
+  }
 }
 </style>

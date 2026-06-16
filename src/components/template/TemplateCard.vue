@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { CopyDocument, Edit, Delete } from '@element-plus/icons-vue'
 
 const props = defineProps<{
   template: {
@@ -21,9 +22,10 @@ const emit = defineEmits<{
 
 const categoryLabel = computed(() => {
   const map: Record<string, string> = {
-    common: '通用',
+    common: '通用对话',
     report: '数据报表',
     travel: '旅游规划',
+    assistant: '智能助手',
   }
   return map[props.template.category] || props.template.category
 })
@@ -33,6 +35,7 @@ const categoryColor = computed(() => {
     common: 'var(--neon-cyan)',
     report: 'var(--neon-purple)',
     travel: '#00ff88',
+    assistant: '#ff9f43',
   }
   return map[props.template.category] || 'var(--neon-cyan)'
 })
@@ -52,16 +55,31 @@ const preview = computed(() => {
         {{ categoryLabel }}
       </span>
     </div>
-    <div class="card-preview">{{ preview }}</div>
+    <el-tooltip
+      :content="template.content"
+      placement="top"
+      effect="dark"
+      :show-after="200"
+      :disabled="template.content.length <= 120"
+      popper-class="desc-tooltip"
+    >
+      <div class="card-preview">{{ preview }}</div>
+    </el-tooltip>
     <div class="card-footer">
       <el-switch
         :model-value="template.status === 1"
         @change="(val: boolean) => emit('toggle', template.id, val ? 1 : 0)"
       />
       <div class="card-actions">
-        <el-button size="small" text @click="emit('use', template.content)">使用</el-button>
-        <el-button size="small" text @click="emit('edit', template.id)">编辑</el-button>
-        <el-button size="small" text type="danger" @click="emit('delete', template.id)">删除</el-button>
+        <el-tooltip content="复制模板" placement="top">
+          <el-button :icon="CopyDocument" circle size="small" @click="emit('use', template.content)" />
+        </el-tooltip>
+        <el-tooltip content="编辑模板" placement="top">
+          <el-button :icon="Edit" circle size="small" @click="emit('edit', template.id)" />
+        </el-tooltip>
+        <el-tooltip content="删除模板" placement="top">
+          <el-button :icon="Delete" circle size="small" type="danger" @click="emit('delete', template.id)" />
+        </el-tooltip>
       </div>
     </div>
   </div>
@@ -80,12 +98,9 @@ const preview = computed(() => {
   &.disabled {
     opacity: 0.5;
 
-      .card-actions {
-        pointer-events: none;
-      }
-      .card-actions .el-button {
-        color: rgba(255, 255, 255, 0.3) !important;
-      }
+    .card-actions {
+      pointer-events: none;
+    }
   }
 }
 
@@ -107,6 +122,7 @@ const preview = computed(() => {
   padding: 2px 8px;
   border: 1px solid;
   border-radius: 4px;
+  white-space: nowrap;
 }
 
 .card-preview {
@@ -115,6 +131,10 @@ const preview = computed(() => {
   line-height: 1.6;
   margin-bottom: 12px;
   min-height: 40px;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .card-footer {
@@ -126,5 +146,23 @@ const preview = computed(() => {
 .card-actions {
   display: flex;
   gap: 4px;
+}
+</style>
+
+<style lang="scss">
+.desc-tooltip.el-popper {
+  max-width: 320px !important;
+  background: #1e2336 !important;
+  color: #e0e0e0 !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  white-space: normal !important;
+  word-break: break-word !important;
+  line-height: 1.7 !important;
+  font-size: 13px !important;
+
+  .el-popper__arrow::before {
+    background: #1e2336 !important;
+    border-color: rgba(255, 255, 255, 0.12) !important;
+  }
 }
 </style>

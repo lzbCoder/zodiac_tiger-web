@@ -49,6 +49,7 @@ function handleSave() {
           <el-option label="通用对话" value="common" />
           <el-option label="数据报表" value="report" />
           <el-option label="旅游规划" value="travel" />
+          <el-option label="智能助手" value="assistant" />
         </el-select>
       </el-form-item>
       <el-form-item label="模板内容 (使用 {{变量名}} 定义变量)">

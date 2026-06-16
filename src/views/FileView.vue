@@ -166,12 +166,16 @@ onMounted(() => {
         </el-table-column>
         <el-table-column label="操作" width="110" align="center">
           <template #default="{ row }">
-            <el-button size="small" text type="primary" @click="downloadFile(row.id)">
-              <el-icon><Download /></el-icon>
-            </el-button>
-            <el-button size="small" text type="danger" @click="handleDelete(row)">
-              <el-icon><Delete /></el-icon>
-            </el-button>
+            <el-tooltip content="下载" placement="top" :show-after="200" popper-class="desc-tooltip">
+              <el-button size="small" text type="primary" @click="downloadFile(row.id)">
+                <el-icon><Download /></el-icon>
+              </el-button>
+            </el-tooltip>
+            <el-tooltip content="删除" placement="top" :show-after="200" popper-class="desc-tooltip">
+              <el-button size="small" text type="danger" @click="handleDelete(row)">
+                <el-icon><Delete /></el-icon>
+              </el-button>
+            </el-tooltip>
           </template>
         </el-table-column>
       </el-table>
@@ -320,5 +324,20 @@ onMounted(() => {
 }
 .file-row:hover > td {
   background: rgba(0, 238, 255, 0.03) !important;
+}
+
+.desc-tooltip.el-popper {
+  max-width: 320px !important;
+  background: #1e2336 !important;
+  color: #e0e0e0 !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  white-space: normal !important;
+  word-break: break-word !important;
+  line-height: 1.7 !important;
+  font-size: 13px !important;
+}
+.desc-tooltip.el-popper .el-popper__arrow::before {
+  background: #1e2336 !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
 }
 </style>
