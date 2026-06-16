@@ -7,7 +7,7 @@ defineProps<{
   steps: AgentStep[]
 }>()
 
-const collapsed = ref(false)
+const collapsed = ref(true)
 
 function toggle() {
   collapsed.value = !collapsed.value
@@ -170,8 +170,8 @@ function toggle() {
 
 .step-list {
   &.has-scroll {
-    max-height: none;
-    overflow-y: visible;
+    max-height: 300px;
+    overflow-y: auto;
   }
 }
 
