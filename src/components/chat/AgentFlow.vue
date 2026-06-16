@@ -7,7 +7,7 @@ defineProps<{
   steps: AgentStep[]
 }>()
 
-const collapsed = ref(true)
+const collapsed = ref(false)
 
 function toggle() {
   collapsed.value = !collapsed.value
@@ -94,8 +94,11 @@ function toggle() {
                   </div>
                   <!-- 普通子项 -->
                   <div v-else class="tool-child-item">
-                    <span class="tci-status">{{ t.status === 'completed' ? '✅' : t.status === 'in_progress' ? '⚙️' : '⏳' }}</span>
-                    <span class="tci-name">{{ t.name || t.step }}</span>
+                    <span class="tci-status">
+                      <el-icon v-if="t.status === 'in_progress'" class="is-loading" :size="12"><Loading /></el-icon>
+                      <span v-else>{{ t.status === 'completed' ? '✅' : '⏳' }}</span>
+                    </span>
+                    <span class="tci-name" :class="{ 'highlight': t.status === 'in_progress' }">{{ t.step || t.name }}</span>
                     <span v-if="t.cost_ms" class="tci-cost">{{ (t.cost_ms / 1000).toFixed(1) }}s</span>
                     <div v-if="t.detail" class="tci-detail-fold">
                       <div class="detail-toggle" @click="t._showDetail = !t._showDetail">
@@ -167,8 +170,8 @@ function toggle() {
 
 .step-list {
   &.has-scroll {
-    max-height: 180px;
-    overflow-y: auto;
+    max-height: none;
+    overflow-y: visible;
   }
 }
 
@@ -293,6 +296,7 @@ function toggle() {
 .tci-status { flex-shrink: 0; }
 .tci-name { color: rgba(255, 255, 255, 0.6); }
 .tci-cost { color: rgba(255, 255, 255, 0.3); font-size: 10px; margin-left: auto; }
+.tci-name.highlight { color: var(--neon-cyan); }
 
 .tci-detail-fold {
   width: 100%;

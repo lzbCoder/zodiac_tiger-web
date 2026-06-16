@@ -89,11 +89,31 @@ async function handleSend(text: string, enableSearch: boolean = false) {
               react_round: event.react_round,
             } as any)
           } else if (event.type === 'plan') {
-            store.upsertPlanForMessage(aiIdx, event.steps)
+            store.upsertPlanForMessage(aiIdx, event.steps, event.parent_node)
           } else if (event.type === 'token') {
-            aiContent += event.content
+            if (event.name === 'assistant_answer_generator') {
+              aiContent += event.content
+              const msg = store.messages[aiIdx]
+              if (msg) msg.content = aiContent
+            }
+          } else if (event.type === 'plan_step_detail') {
+            // 将 planner 的思考内容实时追加到当前 in_progress 计划步骤的 detail 中
             const msg = store.messages[aiIdx]
-            if (msg) msg.content = aiContent
+            if (msg?.steps) {
+              for (const s of msg.steps) {
+                const planStep = s.children?.find(c => (c.name || c.step) === '📋 执行计划')
+                if (planStep?.children) {
+                  for (const pc of planStep.children) {
+                    if (pc.status === 'in_progress') {
+                      if (!pc.detail) pc.detail = ''
+                      pc.detail += event.content
+                      pc._showDetail = true  // 自动展开详情
+                      break
+                    }
+                  }
+                }
+              }
+            }
           } else if (event.type === 'interrupt') {
             const irData = JSON.parse(event.content || '{}')
             if (irData.type === 'travel_param_missing') {

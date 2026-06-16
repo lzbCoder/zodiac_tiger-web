@@ -105,15 +105,39 @@ export const useChatStore = defineStore('chat', () => {
   /** plan 步骤（pending/in_progress/done）→ AgentStep 子项 */
   const PLAN_KEY = '📋 执行计划'
   function _makePlanChildren(rawSteps: any[]): AgentStep[] {
-    return rawSteps.map((s: any) => ({
-      step: s.description,
-      name: `plan-${s.index}`,
-      status: s.status === 'done' ? 'completed' : s.status, // pending | in_progress | completed
-    })) as AgentStep[]
+    return rawSteps.map((s: any) => {
+      const idx = s.index ?? 0
+      const label = s.description || s.step || `步骤 ${idx + 1}`
+      const child: AgentStep = {
+        step: `${idx + 1}. ${label}`,
+        name: `${idx + 1}. ${label}`,
+        _planIndex: idx,
+        status: s.status === 'done' ? 'completed' : s.status, // pending | in_progress | completed
+      }
+      if (s.detail) {
+        child.detail = s.detail
+        child._showDetail = true  // 有详情即展开，状态切换后保留
+      }
+      // 执行中的步骤默认展开详情（即使 detail 还没来）
+      if (s.status === 'in_progress' && !child._showDetail) {
+        child._showDetail = true
+      }
+      return child
+    }) as AgentStep[]
   }
 
   /** 将一份计划清单 upsert 进给定 steps 数组（流式与历史还原共用） */
-  function _upsertPlanInto(stepsArr: AgentStep[], rawSteps: any[]) {
+  function _upsertPlanInto(stepsArr: AgentStep[], rawSteps: any[], parentName?: string, allSteps?: AgentStep[]) {
+    // 如果有父节点名，将计划挂到父节点的 children 下
+    if (parentName && allSteps) {
+      const parent = _findStep(allSteps, parentName)
+      if (parent) {
+        if (!parent.children) parent.children = []
+        // 执行期间自动展开父节点（如"智能助手"）的子流程
+        if (!parent._showTools) parent._showTools = true
+        stepsArr = parent.children
+      }
+    }
     const allDone = rawSteps.every((s: any) => s.status === 'done')
     const planStep: any = {
       step: PLAN_KEY, name: PLAN_KEY,
@@ -131,7 +155,7 @@ export const useChatStore = defineStore('chat', () => {
     const steps: AgentStep[] = []
     for (const ev of execEvents) {
       if (ev.event_type === 'plan' && Array.isArray(ev.steps)) {
-        _upsertPlanInto(steps, ev.steps)
+        _upsertPlanInto(steps, ev.steps, ev.parent_node, steps)
         continue
       }
       if (ev.event_type !== 'progress' && ev.event_type !== 'step' && ev.event_type !== 'tool' && ev.event_type !== 'thought' && ev.event_type !== 'retrieval') continue
@@ -144,8 +168,12 @@ export const useChatStore = defineStore('chat', () => {
         const parent = _findStep(steps, parentName)
         if (parent) {
           if (!parent.children) parent.children = []
+          // 执行期间自动展开父节点的子流程
+          if (!parent._showTools) parent._showTools = true
           const childKey = ev.name
           const childData: any = { step: ev.name, name: ev.name, status: st, cost_ms: ev.cost_ms, detail: ev.detail, tool_args: ev.tool_args, cost_sec: ev.cost_sec, react_round: ev.react_round }
+          // 有详情内容的子项自动展开
+          if (ev.detail) childData._showDetail = true
 
           // ReAct 轮次分组：插入中间节点
           const rnd = ev.react_round
@@ -154,7 +182,7 @@ export const useChatStore = defineStore('chat', () => {
             const roundKey = `第${rnd}轮ReAct循环`
             let roundNode = parent.children.find((c: any) => c.name === roundKey)
             if (!roundNode) {
-              roundNode = { step: roundKey, name: roundKey, status: 'completed', children: [] }
+              roundNode = { step: roundKey, name: roundKey, status: 'completed', children: [], _showTools: true }
               parent.children.push(roundNode)
             }
             if (!roundNode.children) roundNode.children = []
@@ -239,8 +267,12 @@ export const useChatStore = defineStore('chat', () => {
       const parent = _findStep(msg.steps, parentNode)
       if (parent) {
         if (!parent.children) parent.children = []
+        // 执行期间自动展开父节点的子流程
+        if (!parent._showTools) parent._showTools = true
         const key = step.name || step.step
         const childData: any = { step: step.step, name: step.name, status: step.status, cost_ms: (step as any).cost_ms, detail: (step as any).detail, tool_args: (step as any).tool_args, cost_sec: (step as any).cost_sec, react_round: (step as any).react_round }
+        // 有详情内容的子项自动展开
+        if ((step as any).detail) childData._showDetail = true
 
         // ReAct 轮次分组：插入中间节点
         const rnd = (step as any).react_round
@@ -249,7 +281,7 @@ export const useChatStore = defineStore('chat', () => {
           const roundKey = `第${rnd}轮ReAct循环`
           let roundNode = parent.children.find((c: any) => c.name === roundKey)
           if (!roundNode) {
-            roundNode = { step: roundKey, name: roundKey, status: 'completed', children: [] }
+            roundNode = { step: roundKey, name: roundKey, status: 'completed', children: [], _showTools: true }
             parent.children.push(roundNode)
           }
           if (!roundNode.children) roundNode.children = []
@@ -275,11 +307,11 @@ export const useChatStore = defineStore('chat', () => {
   }
 
   /** 写入/更新复杂任务的执行计划（SSE plan 事件 + 历史还原共用渲染结构） */
-  function upsertPlanForMessage(msgIdx: number, rawSteps: any[]) {
+  function upsertPlanForMessage(msgIdx: number, rawSteps: any[], parentName?: string) {
     const msg = messages.value[msgIdx]
     if (!msg || msg.role !== 'ai' || !Array.isArray(rawSteps) || rawSteps.length === 0) return
     if (!msg.steps) msg.steps = []
-    _upsertPlanInto(msg.steps, rawSteps)
+    _upsertPlanInto(msg.steps, rawSteps, parentName, msg.steps)
   }
 
   /** 获取最后一条 AI 消息的 index，用于 SSE 步骤写入 */

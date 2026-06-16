@@ -39,7 +39,7 @@ function startResize(e: MouseEvent) {
 function onResize(e: MouseEvent) {
   if (!isResizing.value) return
   const diff = startX.value - e.clientX
-  panelWidth.value = Math.max(44, Math.min(600, startWidth.value + diff))
+  panelWidth.value = Math.max(200, Math.min(600, startWidth.value + diff))
 }
 
 function stopResize() {
@@ -106,7 +106,7 @@ watch(
 </script>
 
 <template>
-  <div class="right-panel" :class="{ expanded, resizing: isResizing }" :style="{ width: panelWidth + 'px' }">
+  <div class="right-panel" :class="{ expanded, resizing: isResizing }" :style="expanded ? { width: panelWidth + 'px' } : {}">
     <div class="drag-handle" @mousedown="startResize" />
     <QuestionNav class="panel-question-nav" @jump="onQuestionJump" />
     <!-- 折叠态：竖排标签 + 状态指示灯 -->
@@ -203,8 +203,11 @@ watch(
                   </div>
                   <!-- 普通子项 -->
                   <div v-else class="tool-child-item">
-                    <span class="tci-status">{{ t.status === 'completed' ? '✅' : t.status === 'in_progress' ? '⚙️' : '⏳' }}</span>
-                    <span class="tci-name">{{ t.name || t.step }}</span>
+                    <span class="tci-status">
+                      <el-icon v-if="t.status === 'in_progress'" class="is-loading" :size="12"><Loading /></el-icon>
+                      <span v-else>{{ t.status === 'completed' ? '✅' : '⏳' }}</span>
+                    </span>
+                    <span class="tci-name" :class="{ 'highlight': t.status === 'in_progress' }">{{ t.step || t.name }}</span>
                     <span v-if="t.cost_ms" class="tci-cost">{{ (t.cost_ms / 1000).toFixed(1) }}s</span>
                     <div v-if="t.detail" class="tci-detail-fold">
                       <div class="detail-toggle" @click="t._showDetail = !t._showDetail">
@@ -243,9 +246,10 @@ watch(
   flex-shrink: 0;
   width: 44px;
   position: relative;
-  transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-  overflow: visible;
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
   z-index: 5;
+  white-space: nowrap;
 
   &.expanded {
     width: 240px;
@@ -277,8 +281,8 @@ watch(
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
-  padding: 16px 0;
+  gap: 12px;
+  padding: 20px 4px;
   cursor: pointer;
   color: var(--text-secondary);
   transition: color 0.3s;
@@ -292,11 +296,11 @@ watch(
   display: flex;
   flex-direction: column;
   align-items: center;
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 2px;
+  font-size: 11px;
+  font-weight: 700;
   color: var(--text-secondary);
-  gap: 2px;
+  line-height: 1.3;
+  user-select: none;
 }
 
 .status-dot {
@@ -326,7 +330,6 @@ watch(
   display: flex;
   flex-direction: column;
   height: 100%;
-  min-width: 240px;
 }
 
 .panel-header {
@@ -548,6 +551,7 @@ watch(
 
 .tci-status { flex-shrink: 0; }
 .tci-name { color: rgba(255, 255, 255, 0.6); }
+.tci-name.highlight { color: var(--color-primary); }
 .tci-cost { color: rgba(255, 255, 255, 0.3); font-size: 10px; margin-left: auto; }
 
 .tci-detail-fold {
