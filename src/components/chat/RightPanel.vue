@@ -189,7 +189,7 @@ watch(
                     <div v-if="t._showTools" class="tool-round-list">
                       <div v-for="(rc, ri) in t.children" :key="ri" class="tool-child-item">
                         <span class="tci-status">{{ rc.status === 'completed' ? '✅' : rc.status === 'in_progress' ? '⚙️' : '⏳' }}</span>
-                        <span class="tci-name">{{ rc.name || rc.step }}</span>
+                        <span class="tci-name"><span v-if="rc.tool_args" class="tci-tool-icon">🔧 </span>{{ rc.name || rc.step }}</span>
                         <span v-if="rc.cost_ms" class="tci-cost">{{ (rc.cost_ms / 1000).toFixed(1) }}s</span>
                         <div v-if="rc.detail" class="tci-detail-fold">
                           <div class="detail-toggle" @click="rc._showDetail = !rc._showDetail">
@@ -197,6 +197,20 @@ watch(
                             <el-icon :size="12"><ArrowDown v-if="!rc._showDetail"/><ArrowUp v-else/></el-icon>
                           </div>
                           <div v-if="rc._showDetail" class="detail-content">{{ rc.detail }}</div>
+                        </div>
+                        <div v-if="rc.tool_args" class="tci-detail-fold">
+                          <div class="detail-toggle" @click="rc._showArgs = !rc._showArgs">
+                            📥 入参
+                            <el-icon :size="12"><ArrowDown v-if="!rc._showArgs"/><ArrowUp v-else/></el-icon>
+                          </div>
+                          <div v-if="rc._showArgs" class="detail-content">{{ rc.tool_args }}</div>
+                        </div>
+                        <div v-if="rc.tool_result" class="tci-detail-fold">
+                          <div class="detail-toggle" @click="rc._showResult = !rc._showResult">
+                            📤 结果
+                            <el-icon :size="12"><ArrowDown v-if="!rc._showResult"/><ArrowUp v-else/></el-icon>
+                          </div>
+                          <div v-if="rc._showResult" class="detail-content">{{ rc.tool_result }}</div>
                         </div>
                       </div>
                     </div>

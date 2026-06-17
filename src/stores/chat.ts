@@ -11,10 +11,13 @@ export interface AgentStep {
   cost_ms?: number
   detail?: string
   tool_args?: string
+  tool_result?: string
   cost_sec?: number
   children?: AgentStep[]
   _showTools?: boolean
   _showDetail?: boolean
+  _showArgs?: boolean
+  _showResult?: boolean
 }
 
 export interface ChatMessage {
@@ -162,7 +165,7 @@ export const useChatStore = defineStore('chat', () => {
         if (parent) {
           if (!parent.children) parent.children = []
           const childKey = ev.name
-          const childData: any = { step: ev.name, name: ev.name, status: st, cost_ms: ev.cost_ms, detail: ev.detail, tool_args: ev.tool_args, cost_sec: ev.cost_sec, react_round: ev.react_round }
+          const childData: any = { step: ev.name, name: ev.name, status: st, cost_ms: ev.cost_ms, detail: ev.detail, tool_args: ev.tool_args, tool_result: ev.tool_result, cost_sec: ev.cost_sec, react_round: ev.react_round }
 
           // ReAct 轮次分组：插入中间节点
           const rnd = ev.react_round
@@ -180,7 +183,9 @@ export const useChatStore = defineStore('chat', () => {
 
           const ci = targetChildren.findIndex((c: any) => (c.name || c.step) === childKey)
           if (ci >= 0) {
-            targetChildren[ci] = { ...targetChildren[ci], ...childData, cost_ms: Math.max(targetChildren[ci].cost_ms || 0, ev.cost_ms || 0) }
+            // 过滤 undefined，防止 tool_end 事件的 {tool_args: undefined} 覆盖 tool_start 写入的值
+            const patch = Object.fromEntries(Object.entries(childData).filter(([, v]) => v !== undefined))
+            targetChildren[ci] = { ...targetChildren[ci], ...patch, cost_ms: Math.max(targetChildren[ci].cost_ms || 0, ev.cost_ms || 0) }
           } else {
             targetChildren.push(childData)
           }
@@ -257,7 +262,7 @@ export const useChatStore = defineStore('chat', () => {
       if (parent) {
         if (!parent.children) parent.children = []
         const key = step.name || step.step
-        const childData: any = { step: step.step, name: step.name, status: step.status, cost_ms: (step as any).cost_ms, detail: (step as any).detail, tool_args: (step as any).tool_args, cost_sec: (step as any).cost_sec, react_round: (step as any).react_round }
+        const childData: any = { step: step.step, name: step.name, status: step.status, cost_ms: (step as any).cost_ms, detail: (step as any).detail, tool_args: (step as any).tool_args, tool_result: (step as any).tool_result, cost_sec: (step as any).cost_sec, react_round: (step as any).react_round }
 
         // ReAct 轮次分组：插入中间节点
         const rnd = (step as any).react_round
@@ -275,7 +280,9 @@ export const useChatStore = defineStore('chat', () => {
 
         const ci = targetChildren.findIndex((c: any) => (c.name || c.step) === key)
         if (ci >= 0) {
-          targetChildren[ci] = { ...targetChildren[ci], ...childData, cost_ms: Math.max(targetChildren[ci].cost_ms || 0, (step as any).cost_ms || 0) }
+          // 过滤 undefined，防止 tool_end 事件的 {tool_args: undefined} 覆盖 tool_start 写入的值
+          const patch = Object.fromEntries(Object.entries(childData).filter(([, v]) => v !== undefined))
+          targetChildren[ci] = { ...targetChildren[ci], ...patch, cost_ms: Math.max(targetChildren[ci].cost_ms || 0, (step as any).cost_ms || 0) }
         } else {
           targetChildren.push(childData)
         }

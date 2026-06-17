@@ -91,11 +91,9 @@ async function handleSend(text: string, enableSearch: boolean = false) {
           } else if (event.type === 'plan') {
             store.upsertPlanForMessage(aiIdx, event.steps, event.parent_node)
           } else if (event.type === 'token') {
-            if (event.name === 'assistant_answer_generator') {
-              aiContent += event.content
-              const msg = store.messages[aiIdx]
-              if (msg) msg.content = aiContent
-            }
+            aiContent += event.content
+            const msg = store.messages[aiIdx]
+            if (msg) msg.content = aiContent
           } else if (event.type === 'plan_step_detail') {
             // 将 planner 的思考内容实时追加到当前 in_progress 计划步骤的 detail 中
             const msg = store.messages[aiIdx]
@@ -159,6 +157,8 @@ async function resumeStream(params: any) {
             step: event.name, name: event.name, status: event.status, cost_ms: event.cost_ms,
             intent: event.intent, detail: event.detail, parent_node: event.parent_node,
             react_round: event.react_round,
+            tool_args: event.tool_args,
+            tool_result: event.tool_result,
           } as any)
         } else if (event.type === 'plan') {
           store.upsertPlanForMessage(aiIdx, event.steps)
