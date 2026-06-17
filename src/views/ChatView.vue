@@ -220,7 +220,7 @@ async function resumeStream(params: any) {
         }
       }
       if (!msg.content) {
-        msg.content = wasAborted ? '（任务已被手动终止）' : '（未收到有效回复）'
+        msg.content = wasAborted ? '（任务已被手动终止）' : '（任务执行中，请稍后）'
       }
     }
     if (wasAborted) {
