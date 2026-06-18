@@ -23,6 +23,11 @@ const router = createRouter({
       component: () => import('@/views/SkillView.vue'),
     },
     {
+      path: '/skill/:skill_key',
+      name: 'SkillDetail',
+      component: () => import('@/views/SkillDetailView.vue'),
+    },
+    {
       path: '/mcp',
       name: 'Mcp',
       component: () => import('@/views/McpServerView.vue'),

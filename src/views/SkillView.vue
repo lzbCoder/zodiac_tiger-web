@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { Edit, Connection, Delete, UploadFilled, Document, CircleClose } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import GlassCard from '@/components/common/GlassCard.vue'
@@ -15,6 +16,8 @@ import {
   getSkillAgentBind,
   updateSkillAgentBind,
 } from '@/api/skill'
+
+const router = useRouter()
 
 // ---- 列表 ----
 const skills = ref<SkillInfo[]>([])
@@ -233,7 +236,12 @@ onMounted(fetchList)
 
     <!-- 技能卡片网格 -->
     <div v-loading="loading" class="skill-grid">
-      <div v-for="skill in skills" :key="skill.skill_key" class="skill-card glass-card">
+      <div
+        v-for="skill in skills"
+        :key="skill.skill_key"
+        class="skill-card glass-card"
+        @click="router.push('/skill/' + skill.skill_key)"
+      >
         <div class="card-header">
           <div class="card-title-group">
             <span class="card-name">{{ skill.display_name }}</span>
@@ -249,7 +257,7 @@ onMounted(fetchList)
         >
           <p class="card-desc">{{ skill.display_desc || skill.skill_desc || '暂无描述' }}</p>
         </el-tooltip>
-        <div class="card-footer">
+        <div class="card-footer" @click.stop>
           <el-switch
             :model-value="skill.enable_status === 1"
             @change="(val: boolean) => handleToggle(skill, val)"
@@ -446,11 +454,13 @@ onMounted(fetchList)
   display: flex;
   flex-direction: column;
   gap: 10px;
+  cursor: pointer;
   transition: all 0.3s ease;
 
   &:hover {
     transform: translateY(-4px);
-    border-color: rgba(0, 238, 255, 0.3);
+    border-color: rgba(0, 238, 255, 0.4);
+    box-shadow: 0 8px 24px rgba(0, 238, 255, 0.12);
   }
 }
 
@@ -472,6 +482,7 @@ onMounted(fetchList)
   font-weight: 600;
   color: var(--text-primary);
 }
+
 
 .card-key {
   font-size: 11px;

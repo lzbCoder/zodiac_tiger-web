@@ -34,6 +34,10 @@ export function deleteSkill(skill_key: string) {
   return api.delete(`/skill/delete/${skill_key}`)
 }
 
+export function getSkillDetail(skill_key: string) {
+  return api.get('/skill/detail', { params: { skill_key } })
+}
+
 export function getSkillAgentBind(skill_key: string) {
   return api.get('/skill/agent-bind', { params: { skill_key } })
 }
