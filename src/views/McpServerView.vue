@@ -42,6 +42,7 @@ const editForm = ref({
   mcp_key: '',
   display_name: '',
   endpoint_url: '',
+  transport_type: 'streamable_http' as 'streamable_http' | 'sse',
   auth_type: 'none' as 'none' | 'bearer',
   bearer_token: '',
   remark: '',
@@ -65,7 +66,7 @@ const canTest = computed(() => {
 
 function handleNew() {
   isEditMode.value = false
-  editForm.value = { mcp_key: '', display_name: '', endpoint_url: '', auth_type: 'none', bearer_token: '', remark: '' }
+  editForm.value = { mcp_key: '', display_name: '', endpoint_url: '', transport_type: 'streamable_http', auth_type: 'none', bearer_token: '', remark: '' }
   testResult.value = null
   editVisible.value = true
 }
@@ -84,6 +85,7 @@ function handleEdit(row: McpServer) {
     mcp_key: row.mcp_key,
     display_name: row.display_name,
     endpoint_url: row.endpoint_url,
+    transport_type: (row.transport_type as 'streamable_http' | 'sse') || 'streamable_http',
     auth_type,
     bearer_token,
     remark: row.remark || '',
@@ -95,11 +97,21 @@ function handleEdit(row: McpServer) {
 async function handleTestConnect() {
   if (!canTest.value) return
   editLoading.value = true
+  const isSSE = editForm.value.transport_type === 'sse'
+  if (isSSE) {
+    ElMessage.info('SSE 协议初始化可能需要 1~3 分钟，请耐心等待…')
+  }
   try {
-    const res: any = await testMcpConnect({
-      endpoint_url: editForm.value.endpoint_url,
-      auth_headers: buildAuthHeaders(),
-    })
+    // SSE 端点冷启动耗时较长（实测约 154 秒），需要更长的请求超时
+    const res: any = await testMcpConnect(
+      {
+        endpoint_url: editForm.value.endpoint_url,
+        auth_headers: buildAuthHeaders(),
+        transport_type: editForm.value.transport_type,
+        mcp_key: editForm.value.mcp_key,  // 已存服务传 key 复用预热连接；新服务为空串
+      },
+      { timeout: isSSE ? 420000 : 60000 },
+    )
     testResult.value = res.data
     if (res.data.ok) {
       ElMessage.success(`连接成功，发现 ${res.data.tool_count} 个工具`)
@@ -125,6 +137,7 @@ async function handleSave() {
       display_name: f.display_name.trim(),
       endpoint_url: f.endpoint_url.trim(),
       auth_headers: buildAuthHeaders(),
+      transport_type: f.transport_type,
       remark: f.remark.trim() || undefined,
     })
     ElMessage.success('保存成功，工具已自动同步')
@@ -154,11 +167,19 @@ async function handleToggleStatus(row: McpServer) {
 
 async function handleTestRow(row: McpServer) {
   loading.value = true
+  const isSSE = row.transport_type === 'sse'
+  if (isSSE) {
+    ElMessage.info('SSE 协议初始化可能需要 1~3 分钟，请耐心等待…')
+  }
   try {
-    const res: any = await testMcpConnect({
-      endpoint_url: row.endpoint_url,
-      auth_headers: row.auth_headers || {},
-    })
+    const res: any = await testMcpConnect(
+      {
+        endpoint_url: row.endpoint_url,
+        auth_headers: row.auth_headers || {},
+        transport_type: row.transport_type || 'streamable_http',
+      },
+      { timeout: isSSE ? 200000 : 60000 },
+    )
     if (res.data.ok) {
       ElMessage.success(`连接正常，${res.data.tool_count} 个工具`)
     } else {
@@ -381,8 +402,18 @@ onMounted(fetchList)
 
         <el-form-item>
           <template #label>
-            <span class="form-label">HTTP 地址 <span class="required-mark">*</span></span>
-            <span class="form-label-hint">Streamable HTTP 协议</span>
+            <span class="form-label">传输协议 <span class="required-mark">*</span></span>
+          </template>
+          <el-select v-model="editForm.transport_type" style="width: 100%">
+            <el-option label="Streamable HTTP" value="streamable_http" />
+            <el-option label="SSE（Server-Sent Events）" value="sse" />
+          </el-select>
+        </el-form-item>
+
+        <el-form-item>
+          <template #label>
+            <span class="form-label">服务地址 <span class="required-mark">*</span></span>
+            <span class="form-label-hint">{{ editForm.transport_type === 'sse' ? 'SSE 协议' : 'Streamable HTTP 协议' }}</span>
           </template>
           <el-input v-model="editForm.endpoint_url" placeholder="https://mcp.example.com/mcp" />
         </el-form-item>

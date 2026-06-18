@@ -1,10 +1,12 @@
 import api from './index'
+import type { AxiosRequestConfig } from 'axios'
 
 export interface McpServer {
   mcp_key: string
   display_name: string
   endpoint_url: string
   auth_headers: Record<string, string>
+  transport_type: string
   enable_status: number
   connect_status: number
   last_check_time: string | null
@@ -27,6 +29,7 @@ export const saveMcpServer = (data: {
   display_name: string
   endpoint_url: string
   auth_headers?: Record<string, string>
+  transport_type?: string
   remark?: string
 }) => api.post('/mcp/server/save', data)
 
@@ -36,8 +39,10 @@ export const deleteMcpServer = (mcp_key: string) =>
 export const toggleMcpStatus = (data: { mcp_key: string; enable_status: number }) =>
   api.put('/mcp/server/status', data)
 
-export const testMcpConnect = (data: { endpoint_url: string; auth_headers: Record<string, string> }) =>
-  api.post('/mcp/server/test-connect', data)
+export const testMcpConnect = (
+  data: { endpoint_url: string; auth_headers: Record<string, string>; transport_type?: string; mcp_key?: string },
+  config?: AxiosRequestConfig,
+) => api.post('/mcp/server/test-connect', data, config)
 
 export const syncMcpTools = (mcp_key: string) =>
   api.post('/mcp/server/sync-tools', null, { params: { mcp_key } })
