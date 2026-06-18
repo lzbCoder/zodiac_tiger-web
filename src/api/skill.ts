@@ -2,10 +2,9 @@ import api from './index'
 
 export interface SkillInfo {
   skill_key: string
-  skill_name: string
-  skill_desc: string | null
-  origin_name: string
-  origin_desc: string
+  display_name: string
+  skill_desc: string
+  display_desc: string | null
   folder_abs_path: string
   enable_status: number
   sort: number
@@ -23,7 +22,7 @@ export function getSkillList() {
   return api.get('/skill/list')
 }
 
-export function editSkill(data: { skill_key: string; skill_name: string; skill_desc?: string | null }) {
+export function editSkill(data: { skill_key: string; display_name: string; display_desc?: string | null }) {
   return api.put('/skill/edit', data)
 }
 

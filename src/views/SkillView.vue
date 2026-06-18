@@ -51,7 +51,7 @@ async function handleToggle(skill: SkillInfo, val: boolean) {
 // ---- 删除 ----
 async function handleDelete(skill: SkillInfo) {
   await ElMessageBox.confirm(
-    `确认删除技能「${skill.skill_name}」？将同时删除磁盘文件和绑定关系。`,
+    `确认删除技能「${skill.display_name}」？将同时删除磁盘文件和绑定关系。`,
     '删除确认',
     { type: 'warning', confirmButtonText: '删除', cancelButtonText: '取消' },
   )
@@ -67,17 +67,17 @@ async function handleDelete(skill: SkillInfo) {
 // ---- 弹窗 1：上传新技能 ----
 const uploadVisible = ref(false)
 const uploadLoading = ref(false)
-const uploadForm = ref({ skill_name: '', skill_desc: '' })
+const uploadForm = ref({ display_name: '', display_desc: '' })
 const uploadFile = ref<File | null>(null)
 const isDragging = ref(false)
 const fileInputRef = ref<HTMLInputElement>()
 
 const canUpload = computed(() =>
-  uploadForm.value.skill_name.trim() && uploadFile.value !== null,
+  uploadForm.value.display_name.trim() && uploadFile.value !== null,
 )
 
 function openUploadDialog() {
-  uploadForm.value = { skill_name: '', skill_desc: '' }
+  uploadForm.value = { display_name: '', display_desc: '' }
   uploadFile.value = null
   isDragging.value = false
   uploadVisible.value = true
@@ -114,13 +114,13 @@ function removeUploadFile() {
 
 async function handleUpload() {
   if (!uploadFile.value) return ElMessage.warning('请先选择技能压缩包')
-  if (!uploadForm.value.skill_name.trim()) return ElMessage.warning('请填写展示名称')
+  if (!uploadForm.value.display_name.trim()) return ElMessage.warning('请填写展示名称')
 
   uploadLoading.value = true
   try {
     const fd = new FormData()
-    fd.append('skill_name', uploadForm.value.skill_name.trim())
-    if (uploadForm.value.skill_desc.trim()) fd.append('skill_desc', uploadForm.value.skill_desc.trim())
+    fd.append('display_name', uploadForm.value.display_name.trim())
+    if (uploadForm.value.display_desc.trim()) fd.append('display_desc', uploadForm.value.display_desc.trim())
     fd.append('file', uploadFile.value)
     await uploadSkill(fd)
     ElMessage.success('技能上传成功')
@@ -136,25 +136,25 @@ async function handleUpload() {
 // ---- 弹窗 2：编辑 ----
 const editVisible = ref(false)
 const editLoading = ref(false)
-const editForm = ref({ skill_key: '', skill_name: '', skill_desc: '' })
+const editForm = ref({ skill_key: '', display_name: '', display_desc: '' })
 
 function openEditDialog(skill: SkillInfo) {
   editForm.value = {
     skill_key: skill.skill_key,
-    skill_name: skill.skill_name,
-    skill_desc: skill.skill_desc ?? '',
+    display_name: skill.display_name,
+    display_desc: skill.display_desc ?? '',
   }
   editVisible.value = true
 }
 
 async function handleSaveEdit() {
-  if (!editForm.value.skill_name.trim()) return ElMessage.warning('展示名称不能为空')
+  if (!editForm.value.display_name.trim()) return ElMessage.warning('展示名称不能为空')
   editLoading.value = true
   try {
     await editSkill({
       skill_key: editForm.value.skill_key,
-      skill_name: editForm.value.skill_name.trim(),
-      skill_desc: editForm.value.skill_desc.trim() || null,
+      display_name: editForm.value.display_name.trim(),
+      display_desc: editForm.value.display_desc.trim() || null,
     })
     ElMessage.success('保存成功')
     editVisible.value = false
@@ -236,18 +236,18 @@ onMounted(fetchList)
       <div v-for="skill in skills" :key="skill.skill_key" class="skill-card glass-card">
         <div class="card-header">
           <div class="card-title-group">
-            <span class="card-name">{{ skill.skill_name }}</span>
+            <span class="card-name">{{ skill.display_name }}</span>
             <span class="card-key">{{ skill.skill_key }}</span>
           </div>
         </div>
         <el-tooltip
-          :content="skill.skill_desc || skill.origin_desc || '暂无描述'"
+          :content="skill.display_desc || skill.skill_desc || '暂无描述'"
           placement="top"
           effect="dark"
           :show-after="200"
           popper-class="desc-tooltip"
         >
-          <p class="card-desc">{{ skill.skill_desc || skill.origin_desc || '暂无描述' }}</p>
+          <p class="card-desc">{{ skill.display_desc || skill.skill_desc || '暂无描述' }}</p>
         </el-tooltip>
         <div class="card-footer">
           <el-switch
@@ -280,14 +280,14 @@ onMounted(fetchList)
     >
       <el-form label-position="top">
         <el-form-item label="展示名称" required>
-          <el-input v-model="uploadForm.skill_name" placeholder="技能的展示名称" />
+          <el-input v-model="uploadForm.display_name" placeholder="技能的展示名称" />
         </el-form-item>
         <el-form-item label="展示描述">
           <el-input
-            v-model="uploadForm.skill_desc"
+            v-model="uploadForm.display_desc"
             type="textarea"
             :rows="2"
-            placeholder="可选，留空则使用 SKILL.md 中的 description"
+            placeholder="可选，留空则展示 SKILL.md 中的 description"
           />
         </el-form-item>
         <el-form-item label="技能压缩包" required>
@@ -354,10 +354,10 @@ onMounted(fetchList)
           <el-text class="skill-key-readonly">{{ editForm.skill_key }}</el-text>
         </el-form-item>
         <el-form-item label="展示名称" required>
-          <el-input v-model="editForm.skill_name" placeholder="技能展示名称" />
+          <el-input v-model="editForm.display_name" placeholder="技能展示名称" />
         </el-form-item>
         <el-form-item label="展示描述">
-          <el-input v-model="editForm.skill_desc" type="textarea" :rows="3" placeholder="技能功能描述" />
+          <el-input v-model="editForm.display_desc" type="textarea" :rows="3" placeholder="技能功能描述（留空则展示 SKILL.md 中的描述）" />
         </el-form-item>
       </el-form>
       <template #footer>
