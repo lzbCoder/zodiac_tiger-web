@@ -44,7 +44,7 @@ function handleSave() {
       <el-form-item label="模板名称">
         <el-input v-model="form.name" placeholder="输入模板名称" />
       </el-form-item>
-      <el-form-item label="分类">
+      <el-form-item label="模板分类">
         <el-select v-model="form.category" style="width:100%">
           <el-option label="通用对话" value="common" />
           <el-option label="数据报表" value="report" />
@@ -52,7 +52,7 @@ function handleSave() {
           <el-option label="智能助手" value="assistant" />
         </el-select>
       </el-form-item>
-      <el-form-item label="模板内容 (使用 {{变量名}} 定义变量)">
+      <el-form-item label="模板内容">
         <el-input v-model="form.content" type="textarea" rows="8" placeholder="输入模板内容..." />
       </el-form-item>
     </el-form>
