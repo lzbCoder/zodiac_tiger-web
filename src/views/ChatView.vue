@@ -39,7 +39,7 @@ async function handleSend(text: string, enableSearch: boolean = false) {
 
   store.addMessage({ role: 'ai', content: '', steps: [] })
   const aiIdx = store.lastAiMsgIndex()
-  store.upsertStepForMessage(aiIdx, { step: '开始处理', status: 'running' })
+  store.applyAgentEvent(aiIdx, { type: 'progress', name: '开始处理', status: 'running', node_kind: 'stage' })
 
   const ctrl = new AbortController()
   abortCtrl.value = ctrl
@@ -77,41 +77,12 @@ async function handleSend(text: string, enableSearch: boolean = false) {
         const jsonStr = line.slice(6)
         try {
           const event = JSON.parse(jsonStr)
-          if (event.type === 'progress' || event.type === 'thought' || event.type === 'tool' || event.type === 'retrieval') {
-            store.upsertStepForMessage(aiIdx, {
-              step: event.name, name: event.name,
-              status: event.status, cost_ms: event.cost_ms,
-              intent: event.intent,
-              detail: event.detail,
-              tool_args: event.tool_args,
-              cost_sec: event.cost_sec,
-              parent_node: event.parent_node,
-              react_round: event.react_round,
-            } as any)
-          } else if (event.type === 'plan') {
-            store.upsertPlanForMessage(aiIdx, event.steps, event.parent_node)
+          if (['progress', 'tool', 'retrieval', 'thinking', 'thinking_token'].includes(event.type)) {
+            store.applyAgentEvent(aiIdx, event)
           } else if (event.type === 'token') {
             aiContent += event.content
             const msg = store.messages[aiIdx]
             if (msg) msg.content = aiContent
-          } else if (event.type === 'plan_step_detail') {
-            // 将 planner 的思考内容实时追加到当前 in_progress 计划步骤的 detail 中
-            const msg = store.messages[aiIdx]
-            if (msg?.steps) {
-              for (const s of msg.steps) {
-                const planStep = s.children?.find(c => (c.name || c.step) === '📋 执行计划')
-                if (planStep?.children) {
-                  for (const pc of planStep.children) {
-                    if (pc.status === 'in_progress') {
-                      if (!pc.detail) pc.detail = ''
-                      pc.detail += event.content
-                      pc._showDetail = true  // 自动展开详情
-                      break
-                    }
-                  }
-                }
-              }
-            }
           } else if (event.type === 'interrupt') {
             const irData = JSON.parse(event.content || '{}')
             if (irData.type === 'travel_param_missing') {
@@ -152,16 +123,8 @@ async function resumeStream(params: any) {
       for (const line of lines) {
         if (!line.startsWith('data: ')) continue
         const event = JSON.parse(line.slice(6))
-        if (event.type === 'progress' || event.type === 'thought' || event.type === 'tool' || event.type === 'retrieval') {
-          store.upsertStepForMessage(aiIdx, {
-            step: event.name, name: event.name, status: event.status, cost_ms: event.cost_ms,
-            intent: event.intent, detail: event.detail, parent_node: event.parent_node,
-            react_round: event.react_round,
-            tool_args: event.tool_args,
-            tool_result: event.tool_result,
-          } as any)
-        } else if (event.type === 'plan') {
-          store.upsertPlanForMessage(aiIdx, event.steps)
+        if (['progress', 'tool', 'retrieval', 'thinking', 'thinking_token'].includes(event.type)) {
+          store.applyAgentEvent(aiIdx, event)
         } else if (event.type === 'token') {
           aiContent += event.content; const msg = store.messages[aiIdx]; if (msg) msg.content = aiContent
         } else if (event.type === 'interrupt') {
@@ -194,7 +157,7 @@ async function resumeStream(params: any) {
               store.updateSessionTitle(store.currentSessionId, event.session_title)
             }
           } else if (event.type === 'error') {
-            store.upsertStepForMessage(aiIdx, { step: `错误: ${event.content || event.name}`, name: '错误', status: 'fail' })
+            store.applyAgentEvent(aiIdx, { type: 'progress', name: '错误', status: 'fail', node_kind: 'stage', detail: event.content || event.name })
           }
         } catch {
           // 跳过无法解析的行
@@ -205,7 +168,7 @@ async function resumeStream(params: any) {
     if (e.name === 'AbortError') {
       wasAborted = true
     } else {
-      store.upsertStepForMessage(aiIdx, { step: `连接失败: ${e.message}`, status: 'fail' })
+      store.applyAgentEvent(aiIdx, { type: 'progress', name: '连接失败', status: 'fail', node_kind: 'stage', detail: e.message })
     }
   } finally {
     store.isStreaming = false
@@ -213,10 +176,11 @@ async function resumeStream(params: any) {
     const msg = store.messages[aiIdx]
     if (msg) {
       if (msg.steps) {
+        const endStatus = wasAborted ? 'terminated' : 'completed'
         for (const s of msg.steps) {
-          if (s.status === 'running' || s.status === 'in_progress') {
-            s.status = wasAborted ? 'terminated' : 'completed'
-          }
+          if (s.status === 'running' || s.status === 'in_progress') s.status = endStatus
+          if (s.thinking && s.thinking.status === 'running') s.thinking.status = endStatus
+          if (s.tools) for (const t of s.tools) if (t.status === 'running') t.status = endStatus
         }
       }
       if (!msg.content) {

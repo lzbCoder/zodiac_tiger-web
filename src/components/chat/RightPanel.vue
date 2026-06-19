@@ -3,15 +3,11 @@ import { ref, computed, watch } from 'vue'
 import { useChatStore } from '@/stores/chat'
 import type { AgentStep } from '@/stores/chat'
 import QuestionNav from '@/components/chat/QuestionNav.vue'
+import AgentTimeline from '@/components/chat/AgentTimeline.vue'
 import {
   ArrowLeftBold,
   ArrowRightBold,
-  ArrowDown, ArrowUp,
   Loading,
-  CircleCheckFilled,
-  CircleCloseFilled,
-  Clock,
-  Remove,
 } from '@element-plus/icons-vue'
 
 const store = useChatStore()
@@ -142,100 +138,9 @@ watch(
         <span v-if="failCount > 0" class="stat fail">失败 {{ failCount }}</span>
       </div>
 
-      <!-- 步骤列表 -->
+      <!-- 步骤列表（扁平时间线） -->
       <div v-if="hasSteps" class="step-list">
-        <div
-          v-for="(step, idx) in currentSteps"
-          :key="idx"
-          class="step-item"
-          :class="`step-${step.status}`"
-        >
-          <div v-if="idx < currentSteps.length - 1" class="step-line" />
-          <div class="step-dot">
-            <el-icon v-if="step.status === 'running' || step.status === 'in_progress'" class="is-loading"><Loading /></el-icon>
-            <el-icon v-else-if="step.status === 'completed'"><CircleCheckFilled /></el-icon>
-            <el-icon v-else-if="step.status === 'pending'"><Clock /></el-icon>
-            <el-icon v-else-if="step.status === 'terminated'"><Remove /></el-icon>
-            <el-icon v-else><CircleCloseFilled /></el-icon>
-          </div>
-          <div class="step-info">
-            <span class="step-name">
-              {{ step.step || step.name }}
-              <span v-if="step.cost_ms && step.status === 'completed'" class="step-cost">{{ (step.cost_ms / 1000).toFixed(1) }}s</span>
-            </span>
-            <span v-if="step.intent" class="step-detail">意图: <em>{{ step.intent }}</em></span>
-            <!-- 节点详情折叠 -->
-            <div v-if="step.detail" class="step-detail-fold">
-              <div class="detail-toggle" @click="step._showDetail = !step._showDetail">
-                📋 详情
-                <el-icon :size="12"><ArrowDown v-if="!step._showDetail"/><ArrowUp v-else/></el-icon>
-              </div>
-              <div v-if="step._showDetail" class="detail-content">{{ step.detail }}</div>
-            </div>
-            <!-- 子步骤折叠 -->
-            <div v-if="step.children && step.children.length > 0" class="tool-children">
-              <div class="tool-child-toggle" @click="step._showTools = !step._showTools">
-                ⚡ 执行流程 ({{ step.children.length }})
-                <el-icon :size="12"><ArrowDown v-if="!step._showTools"/><ArrowUp v-else/></el-icon>
-              </div>
-              <div v-if="step._showTools" class="tool-child-list">
-                <template v-for="(t, i) in step.children" :key="i">
-                  <!-- 轮次组节点：包含子 children -->
-                  <div v-if="t.children && t.children.length > 0" class="tool-round-group">
-                    <div class="tool-round-toggle" @click="t._showTools = !t._showTools">
-                      🔄 {{ t.name || t.step }} ({{ t.children.length }})
-                      <el-icon :size="12"><ArrowDown v-if="!t._showTools"/><ArrowUp v-else/></el-icon>
-                    </div>
-                    <div v-if="t._showTools" class="tool-round-list">
-                      <div v-for="(rc, ri) in t.children" :key="ri" class="tool-child-item">
-                        <span class="tci-status">{{ rc.status === 'completed' ? '✅' : rc.status === 'in_progress' ? '⚙️' : '⏳' }}</span>
-                        <span class="tci-name"><span v-if="rc.tool_args" class="tci-tool-icon">🔧 </span>{{ rc.name || rc.step }}</span>
-                        <span v-if="rc.cost_ms" class="tci-cost">{{ (rc.cost_ms / 1000).toFixed(1) }}s</span>
-                        <div v-if="rc.detail" class="tci-detail-fold">
-                          <div class="detail-toggle" @click="rc._showDetail = !rc._showDetail">
-                            📋 详情
-                            <el-icon :size="12"><ArrowDown v-if="!rc._showDetail"/><ArrowUp v-else/></el-icon>
-                          </div>
-                          <div v-if="rc._showDetail" class="detail-content">{{ rc.detail }}</div>
-                        </div>
-                        <div v-if="rc.tool_args" class="tci-detail-fold">
-                          <div class="detail-toggle" @click="rc._showArgs = !rc._showArgs">
-                            📥 入参
-                            <el-icon :size="12"><ArrowDown v-if="!rc._showArgs"/><ArrowUp v-else/></el-icon>
-                          </div>
-                          <div v-if="rc._showArgs" class="detail-content">{{ rc.tool_args }}</div>
-                        </div>
-                        <div v-if="rc.tool_result" class="tci-detail-fold">
-                          <div class="detail-toggle" @click="rc._showResult = !rc._showResult">
-                            📤 结果
-                            <el-icon :size="12"><ArrowDown v-if="!rc._showResult"/><ArrowUp v-else/></el-icon>
-                          </div>
-                          <div v-if="rc._showResult" class="detail-content">{{ rc.tool_result }}</div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <!-- 普通子项 -->
-                  <div v-else class="tool-child-item">
-                    <span class="tci-status">
-                      <el-icon v-if="t.status === 'in_progress'" class="is-loading" :size="12"><Loading /></el-icon>
-                      <span v-else>{{ t.status === 'completed' ? '✅' : '⏳' }}</span>
-                    </span>
-                    <span class="tci-name" :class="{ 'highlight': t.status === 'in_progress' }">{{ t.step || t.name }}</span>
-                    <span v-if="t.cost_ms" class="tci-cost">{{ (t.cost_ms / 1000).toFixed(1) }}s</span>
-                    <div v-if="t.detail" class="tci-detail-fold">
-                      <div class="detail-toggle" @click="t._showDetail = !t._showDetail">
-                        📋 详情
-                        <el-icon :size="12"><ArrowDown v-if="!t._showDetail"/><ArrowUp v-else/></el-icon>
-                      </div>
-                      <div v-if="t._showDetail" class="detail-content">{{ t.detail }}</div>
-                    </div>
-                  </div>
-                </template>
-              </div>
-            </div>
-          </div>
-        </div>
+        <AgentTimeline :steps="currentSteps" />
       </div>
 
       <!-- 空状态 -->

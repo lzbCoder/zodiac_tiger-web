@@ -4,7 +4,6 @@ import { useChatStore } from '@/stores/chat'
 import { computed, ref, onMounted, nextTick, watch } from 'vue'
 import MarkdownIt from 'markdown-it'
 import { ElMessage } from 'element-plus'
-import { ArrowDown, ArrowUp } from '@element-plus/icons-vue'
 import * as echarts from 'echarts'
 import AgentFlow from './AgentFlow.vue'
 
@@ -19,12 +18,6 @@ const isUser = computed(() => props.message.role === 'user')
 const isAi = computed(() => props.message.role === 'ai')
 const hasSteps = computed(() => isAi.value && props.message.steps && props.message.steps.length > 0)
 const isSelected = computed(() => store.selectedMsgIndex === props.msgIndex)
-const showTools = ref(false)
-
-const toolSteps = computed(() => {
-  return (props.message.steps || []).filter(s => s.status === 'running' || s.status === 'completed')
-    .filter(s => (s as any).tool_args !== undefined || s.name?.startsWith('web_search') || s.name?.startsWith('tavily'))
-})
 
 function handleSelect() {
   if (hasSteps.value) {
@@ -300,23 +293,6 @@ watch(() => store.isStreaming, (val) => {
         v-if="hasSteps"
         :steps="message.steps!"
       />
-      <!-- 工具调用折叠栏 -->
-      <div v-if="toolSteps.length > 0" class="tool-calls-section">
-        <div class="tool-toggle" @click="showTools = !showTools">
-          <span>🔧 调用工具 ({{ toolSteps.length }})</span>
-          <el-icon :size="14"><ArrowDown v-if="!showTools"/><ArrowUp v-else/></el-icon>
-        </div>
-        <div v-if="showTools" class="tool-details">
-          <div v-for="(t, i) in toolSteps" :key="i" class="tool-item">
-            <span class="tool-status">{{ t.status === 'completed' ? '✅' : '⏳' }}</span>
-            <span class="tool-name">{{ t.name || t.step }}</span>
-            <span v-if="t.cost_ms" class="tool-cost">{{ (t.cost_ms / 1000).toFixed(1) }}s</span>
-            <div v-if="t.tool_args" class="tool-args" :title="t.tool_args">
-              入参：{{ t.tool_args.slice(0, 120) }}{{ t.tool_args.length > 120 ? '...' : '' }}
-            </div>
-          </div>
-        </div>
-      </div>
       <div
         ref="aiContentRef"
         class="markdown-body"

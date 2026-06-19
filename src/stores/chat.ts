@@ -2,22 +2,42 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { getSessionList, deleteSession as deleteSessionApi } from '@/api/chat'
 
+/** 工具调用附属条目（🔧），挂在子步骤下，可折叠展开看入参/返回 JSON */
+export interface ToolItem {
+  tool_name?: string
+  tool_args?: string
+  tool_result?: string
+  status: string
+  cost_ms?: number
+  _show?: boolean
+}
+
+/** LLM 思考附属条目（🧠），挂在子步骤下，支持折叠 */
+export interface ThinkingItem {
+  content: string
+  status: string
+  cost_ms?: number
+  _show?: boolean   // undefined / true = 展开；false = 折叠
+}
+
+/**
+ * 扁平时间线步骤：主阶段(stage) 与子步骤(substep) 共享同一左边界，仅靠图标区分。
+ * 工具调用 / LLM 思考 / 详情 作为附属子项挂在步骤下方。
+ */
 export interface AgentStep {
   step: string
   name?: string
+  kind?: 'stage' | 'substep'
   status: 'running' | 'completed' | 'fail' | 'error' | 'pending' | 'in_progress' | 'terminated'
   intent?: string
-  skills_count?: number
   cost_ms?: number
   detail?: string
-  tool_args?: string
-  tool_result?: string
-  cost_sec?: number
-  children?: AgentStep[]
-  _showTools?: boolean
+  react_round?: number          // 仅用于去重区分 ReAct 各轮，不展示
+  thinking?: ThinkingItem
+  tools?: ToolItem[]
+  _key?: string
   _showDetail?: boolean
-  _showArgs?: boolean
-  _showResult?: boolean
+  _collapsed?: boolean          // stage 节点折叠状态；undefined / false = 展开
 }
 
 export interface ChatMessage {
@@ -33,6 +53,98 @@ export interface Session {
   title: string
   lastTime: string
   createTime: string
+}
+
+// ---- 扁平时间线：事件 → 步骤 的统一应用逻辑（流式 + 历史回显共用）----
+
+function _normStatus(st: string): AgentStep['status'] {
+  return (st === 'done' ? 'completed' : st) as AgentStep['status']
+}
+
+function _stepKey(name: string, reactRound?: number): string {
+  return `${name}|${reactRound ?? ''}`
+}
+
+function _findStep(steps: AgentStep[], name: string, reactRound?: number): AgentStep | undefined {
+  const key = _stepKey(name, reactRound)
+  return steps.find((s) => s._key === key)
+}
+
+/** 找到附属项应挂载的步骤，缺失时按 substep 兜底创建 */
+function _ensureStep(steps: AgentStep[], name: string, reactRound?: number): AgentStep {
+  let s = _findStep(steps, name, reactRound)
+  if (!s) {
+    s = { step: name, name, kind: 'substep', status: 'running', react_round: reactRound, _key: _stepKey(name, reactRound) }
+    steps.push(s)
+  }
+  return s
+}
+
+/**
+ * 把一个事件（SSE 的 type 或历史的 event_type）应用到扁平 steps 数组上。
+ * 直接 mutate steps，保证 Vue 响应式（对象引用稳定）。
+ */
+function applyEvent(steps: AgentStep[], ev: any) {
+  const et: string = ev.event_type || ev.type
+  if (!et) return
+
+  // ---- 节点进度：主阶段 / 子步骤 ----
+  if (et === 'progress' || et === 'step' || et === 'retrieval') {
+    const name: string = ev.name || ev.step
+    if (!name) return
+    const rnd: number | undefined = ev.react_round
+    const key = _stepKey(name, rnd)
+    const patch: Partial<AgentStep> = {
+      step: name, name,
+      kind: ev.node_kind === 'substep' ? 'substep' : 'stage',
+      status: _normStatus(ev.status),
+      react_round: rnd,
+      _key: key,
+    }
+    if (ev.cost_ms) patch.cost_ms = ev.cost_ms
+    if (ev.intent) patch.intent = ev.intent
+    if (ev.detail) patch.detail = ev.detail
+    const existing = steps.find((s) => s._key === key)
+    if (existing) Object.assign(existing, patch, { cost_ms: Math.max(existing.cost_ms || 0, ev.cost_ms || 0) })
+    else steps.push(patch as AgentStep)
+    return
+  }
+
+  // ---- LLM 思考条目（🧠）----
+  if (et === 'thinking' || et === 'thinking_token') {
+    const attach: string = ev.attach_to || ev.name
+    if (!attach) return
+    const target = _ensureStep(steps, attach, ev.react_round)
+    if (!target.thinking) target.thinking = { content: '', status: 'running' }
+    if (et === 'thinking_token') {
+      target.thinking.content += ev.content || ''
+      target.thinking.status = 'running'
+    } else if (ev.status === 'completed' || ev.status === 'done') {
+      if (ev.content) target.thinking.content = ev.content   // 完成时以完整内容为准（流式原文）
+      target.thinking.status = 'completed'
+      if (ev.cost_ms) target.thinking.cost_ms = ev.cost_ms
+    } else {
+      target.thinking.status = 'running'
+    }
+    return
+  }
+
+  // ---- 工具调用条目（🔧）----
+  if (et === 'tool') {
+    const attach: string = ev.attach_to || ev.parent_node
+    const toolName: string = ev.tool_name || ev.name
+    if (!attach || !toolName) return
+    const target = _ensureStep(steps, attach, ev.react_round)
+    if (!target.tools) target.tools = []
+    const ti = target.tools.findIndex((t) => t.tool_name === toolName)
+    const patch: Partial<ToolItem> = { tool_name: toolName, status: _normStatus(ev.status) }
+    if (ev.tool_args !== undefined) patch.tool_args = ev.tool_args
+    if (ev.tool_result !== undefined) patch.tool_result = ev.tool_result
+    if (ev.cost_ms) patch.cost_ms = ev.cost_ms
+    if (ti >= 0) Object.assign(target.tools[ti], patch, { cost_ms: Math.max(target.tools[ti].cost_ms || 0, ev.cost_ms || 0) })
+    else target.tools.push({ status: 'running', ...patch } as ToolItem)
+    return
+  }
 }
 
 export const useChatStore = defineStore('chat', () => {
@@ -105,104 +217,11 @@ export const useChatStore = defineStore('chat', () => {
     if (s) s.title = title
   }
 
-  /** plan 步骤（pending/in_progress/done）→ AgentStep 子项 */
-  const PLAN_KEY = '📋 执行计划'
-  function _makePlanChildren(rawSteps: any[]): AgentStep[] {
-    return rawSteps.map((s: any) => {
-      const idx = s.index ?? 0
-      const label = s.description || s.step || `步骤 ${idx + 1}`
-      const child: AgentStep = {
-        step: `${idx + 1}. ${label}`,
-        name: `${idx + 1}. ${label}`,
-        _planIndex: idx,
-        status: s.status === 'done' ? 'completed' : s.status,
-      }
-      if (s.detail) {
-        child.detail = s.detail
-      }
-      return child
-    }) as AgentStep[]
-  }
-
-  /** 将一份计划清单 upsert 进给定 steps 数组（流式与历史还原共用） */
-  function _upsertPlanInto(stepsArr: AgentStep[], rawSteps: any[], parentName?: string, allSteps?: AgentStep[]) {
-    // 如果有父节点名，将计划挂到父节点的 children 下
-    if (parentName && allSteps) {
-      const parent = _findStep(allSteps, parentName)
-      if (parent) {
-        if (!parent.children) parent.children = []
-        stepsArr = parent.children
-      }
-    }
-    const allDone = rawSteps.every((s: any) => s.status === 'done')
-    const planStep: any = {
-      step: PLAN_KEY, name: PLAN_KEY,
-      status: allDone ? 'completed' : 'running',
-      children: _makePlanChildren(rawSteps),
-      _showTools: true,
-    }
-    const idx = stepsArr.findIndex((s) => (s.name || s.step) === PLAN_KEY)
-    if (idx >= 0) stepsArr[idx] = { ...stepsArr[idx], ...planStep }
-    else stepsArr.push(planStep)
-  }
-
-  /** execution_events → steps */
+  /** execution_events → 扁平 steps（历史回显） */
   function _eventsToSteps(execEvents: any[]): AgentStep[] {
     const steps: AgentStep[] = []
     for (const ev of execEvents) {
-      if (ev.event_type === 'plan' && Array.isArray(ev.steps)) {
-        _upsertPlanInto(steps, ev.steps, ev.parent_node, steps)
-        continue
-      }
-      if (ev.event_type !== 'progress' && ev.event_type !== 'step' && ev.event_type !== 'tool' && ev.event_type !== 'thought' && ev.event_type !== 'retrieval') continue
-      let st: string = ev.status
-      if (st === 'done') st = 'completed'
-
-      // 子步骤/tool/thought 归入父节点 children
-      const parentName = ev.parent_node || ''
-      if (parentName && (ev.event_type === 'tool' || ev.event_type === 'progress' || ev.event_type === 'thought')) {
-        const parent = _findStep(steps, parentName)
-        if (parent) {
-          if (!parent.children) parent.children = []
-          const childKey = ev.name
-          const childData: any = { step: ev.name, name: ev.name, status: st, cost_ms: ev.cost_ms, detail: ev.detail, tool_args: ev.tool_args, tool_result: ev.tool_result, cost_sec: ev.cost_sec, react_round: ev.react_round }
-
-          // ReAct 轮次分组：插入中间节点
-          const rnd = ev.react_round
-          let targetChildren = parent.children
-          if (rnd) {
-            const roundKey = `第${rnd}轮ReAct循环`
-            let roundNode = parent.children.find((c: any) => c.name === roundKey)
-            if (!roundNode) {
-              roundNode = { step: roundKey, name: roundKey, status: 'completed', children: [] }
-              parent.children.push(roundNode)
-            }
-            if (!roundNode.children) roundNode.children = []
-            targetChildren = roundNode.children
-          }
-
-          const ci = targetChildren.findIndex((c: any) => (c.name || c.step) === childKey)
-          if (ci >= 0) {
-            // 过滤 undefined，防止 tool_end 事件的 {tool_args: undefined} 覆盖 tool_start 写入的值
-            const patch = Object.fromEntries(Object.entries(childData).filter(([, v]) => v !== undefined))
-            targetChildren[ci] = { ...targetChildren[ci], ...patch, cost_ms: Math.max(targetChildren[ci].cost_ms || 0, ev.cost_ms || 0) }
-          } else {
-            targetChildren.push(childData)
-          }
-          continue
-        }
-      }
-      // tool 事件无父节点时跳过（不生成一级条目）
-      if (ev.event_type === 'tool') continue
-
-      const key = ev.name || ev.step
-      const existing = steps.findIndex(s => (s.name || s.step) === key)
-      const stepData: any = { step: key, name: key, status: st, cost_ms: ev.cost_ms, intent: ev.intent, detail: ev.detail }
-      if (existing >= 0) {
-        steps[existing] = { ...steps[existing], ...stepData, cost_ms: Math.max(steps[existing].cost_ms || 0, ev.cost_ms || 0) }
-      } else {
-        steps.push(stepData)
-      }
+      applyEvent(steps, ev)
     }
     return steps
   }
@@ -214,7 +233,7 @@ export const useChatStore = defineStore('chat', () => {
       .filter(Boolean)
   }
 
-  function addMessage(msg: ChatMessage) {
+  function _hydrate(msg: ChatMessage) {
     const execEvents: any[] | undefined = (msg as any).execution_events
     if (execEvents && execEvents.length > 0) {
       const steps = _eventsToSteps(execEvents)
@@ -222,88 +241,24 @@ export const useChatStore = defineStore('chat', () => {
       const charts = _extractCharts(execEvents)
       if (charts.length > 0) msg.charts = charts
     }
+  }
+
+  function addMessage(msg: ChatMessage) {
+    _hydrate(msg)
     messages.value.push(msg)
   }
 
   function setMessages(msgs: ChatMessage[]) {
-    for (const m of msgs) {
-      const execEvents: any[] | undefined = (m as any).execution_events
-      if (execEvents && execEvents.length > 0) {
-        const steps = _eventsToSteps(execEvents)
-        if (steps.length > 0) m.steps = steps
-        const charts = _extractCharts(execEvents)
-        if (charts.length > 0) m.charts = charts
-      }
-    }
+    for (const m of msgs) _hydrate(m)
     messages.value = msgs
   }
 
-  /** 向指定 AI 消息追加/更新步骤（SSE 流式时使用） */
-  /** 递归查找步骤（含 children） */
-  function _findStep(steps: AgentStep[], name: string): AgentStep | null {
-    for (const s of steps) {
-      if (s.name === name) return s
-      if (s.children) {
-        const found = _findStep(s.children, name)
-        if (found) return found
-      }
-    }
-    return null
-  }
-
-  function upsertStepForMessage(msgIdx: number, step: AgentStep) {
+  /** 流式：把单个 SSE 事件应用到指定 AI 消息的扁平 steps 上 */
+  function applyAgentEvent(msgIdx: number, ev: any) {
     const msg = messages.value[msgIdx]
     if (!msg || msg.role !== 'ai') return
     if (!msg.steps) msg.steps = []
-    // tool/子步骤归入父节点 children
-    const parentNode = (step as any).parent_node
-    if (parentNode) {
-      const parent = _findStep(msg.steps, parentNode)
-      if (parent) {
-        if (!parent.children) parent.children = []
-        const key = step.name || step.step
-        const childData: any = { step: step.step, name: step.name, status: step.status, cost_ms: (step as any).cost_ms, detail: (step as any).detail, tool_args: (step as any).tool_args, tool_result: (step as any).tool_result, cost_sec: (step as any).cost_sec, react_round: (step as any).react_round }
-
-        // ReAct 轮次分组：插入中间节点
-        const rnd = (step as any).react_round
-        let targetChildren = parent.children
-        if (rnd) {
-          const roundKey = `第${rnd}轮ReAct循环`
-          let roundNode = parent.children.find((c: any) => c.name === roundKey)
-          if (!roundNode) {
-            roundNode = { step: roundKey, name: roundKey, status: 'completed', children: [] }
-            parent.children.push(roundNode)
-          }
-          if (!roundNode.children) roundNode.children = []
-          targetChildren = roundNode.children
-        }
-
-        const ci = targetChildren.findIndex((c: any) => (c.name || c.step) === key)
-        if (ci >= 0) {
-          // 过滤 undefined，防止 tool_end 事件的 {tool_args: undefined} 覆盖 tool_start 写入的值
-          const patch = Object.fromEntries(Object.entries(childData).filter(([, v]) => v !== undefined))
-          targetChildren[ci] = { ...targetChildren[ci], ...patch, cost_ms: Math.max(targetChildren[ci].cost_ms || 0, (step as any).cost_ms || 0) }
-        } else {
-          targetChildren.push(childData)
-        }
-        return
-      }
-    }
-    const key = step.name || step.step
-    const existing = msg.steps.findIndex((s) => (s.name || s.step) === key)
-    if (existing >= 0) {
-      msg.steps[existing] = { ...msg.steps[existing], ...step, cost_ms: Math.max(msg.steps[existing].cost_ms || 0, (step as any).cost_ms || 0) }
-    } else {
-      msg.steps.push(step)
-    }
-  }
-
-  /** 写入/更新复杂任务的执行计划（SSE plan 事件 + 历史还原共用渲染结构） */
-  function upsertPlanForMessage(msgIdx: number, rawSteps: any[], parentName?: string) {
-    const msg = messages.value[msgIdx]
-    if (!msg || msg.role !== 'ai' || !Array.isArray(rawSteps) || rawSteps.length === 0) return
-    if (!msg.steps) msg.steps = []
-    _upsertPlanInto(msg.steps, rawSteps, parentName, msg.steps)
+    applyEvent(msg.steps, ev)
   }
 
   /** 获取最后一条 AI 消息的 index，用于 SSE 步骤写入 */
@@ -338,8 +293,7 @@ export const useChatStore = defineStore('chat', () => {
     removeSession,
     addMessage,
     setMessages,
-    upsertStepForMessage,
-    upsertPlanForMessage,
+    applyAgentEvent,
     lastAiMsgIndex,
     resetChat,
   }

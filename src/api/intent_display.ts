@@ -19,7 +19,7 @@ export function saveIntentConfig(data: {
   show_name?: string
   intent_desc?: string
   demo_input?: string
-  icon?: string
+  icon?: string | null
   sort?: number
   enable?: number
 }) {

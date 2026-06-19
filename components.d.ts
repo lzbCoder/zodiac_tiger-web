@@ -8,6 +8,7 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     AgentFlow: typeof import('./src/components/chat/AgentFlow.vue')['default']
+    AgentTimeline: typeof import('./src/components/chat/AgentTimeline.vue')['default']
     AppLayout: typeof import('./src/components/layout/AppLayout.vue')['default']
     ChartContainer: typeof import('./src/components/chat/ChartContainer.vue')['default']
     ChatInput: typeof import('./src/components/chat/ChatInput.vue')['default']
@@ -34,11 +35,9 @@ declare module 'vue' {
     ElTag: typeof import('element-plus/es')['ElTag']
     ElText: typeof import('element-plus/es')['ElText']
     ElTooltip: typeof import('element-plus/es')['ElTooltip']
-    ElUpload: typeof import('element-plus/es')['ElUpload']
     EmptyState: typeof import('./src/components/common/EmptyState.vue')['default']
     GlassCard: typeof import('./src/components/common/GlassCard.vue')['default']
     HelpFloating: typeof import('./src/components/chat/HelpFloating.vue')['default']
-    IntentQuickBar: typeof import('./src/components/chat/IntentQuickBar.vue')['default']
     LoadingSpinner: typeof import('./src/components/common/LoadingSpinner.vue')['default']
     MessageBubble: typeof import('./src/components/chat/MessageBubble.vue')['default']
     NeonButton: typeof import('./src/components/common/NeonButton.vue')['default']
