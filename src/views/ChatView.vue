@@ -132,7 +132,8 @@ async function resumeStream(params: any) {
           aiContent += event.content; const msg = store.messages[aiIdx]; if (msg) msg.content = aiContent
         } else if (event.type === 'error') {
           hadError = true
-          store.applyAgentEvent(aiIdx, { type: 'progress', name: '错误', status: 'error', node_kind: 'stage', detail: event.content || event.name })
+          const emsg = store.messages[aiIdx]
+          if (emsg && event.chat_id) emsg.chatId = event.chat_id
         } else if (event.type === 'interrupt') {
           // 递归处理下一个中断
           interrupted = true
@@ -185,10 +186,11 @@ async function resumeStream(params: any) {
             }
           } else if (event.type === 'error') {
             hadError = true
-            // 绑定 chat_id，供错误详情弹窗查询 execution_error_log
+            // 绑定 chat_id，供错误详情弹窗查询 execution_error_log。
+            // 不再合成额外「错误」节点：真实失败节点会变红 + 气泡 ChatAlert 已承载错误详情，
+            // 且合成节点不入库、回显不一致。
             const emsg = store.messages[aiIdx]
             if (emsg && event.chat_id) emsg.chatId = event.chat_id
-            store.applyAgentEvent(aiIdx, { type: 'progress', name: '错误', status: 'error', node_kind: 'stage', detail: event.content || event.name })
           }
         } catch {
           // 跳过无法解析的行
@@ -200,7 +202,6 @@ async function resumeStream(params: any) {
       wasAborted = true
     } else {
       hadError = true
-      store.applyAgentEvent(aiIdx, { type: 'progress', name: '连接失败', status: 'error', node_kind: 'stage', detail: e.message })
     }
   } finally {
     store.isStreaming = false
