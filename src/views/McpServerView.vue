@@ -177,6 +177,7 @@ async function handleTestRow(row: McpServer) {
         endpoint_url: row.endpoint_url,
         auth_headers: row.auth_headers || {},
         transport_type: row.transport_type || 'streamable_http',
+        mcp_key: row.mcp_key,  // 传 key：后端回写 connect_status / last_check_time
       },
       { timeout: isSSE ? 200000 : 60000 },
     )
