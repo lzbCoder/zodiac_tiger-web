@@ -44,6 +44,7 @@ async function handleSend(text: string, enableSearch: boolean = false) {
   const ctrl = new AbortController()
   abortCtrl.value = ctrl
   let wasAborted = false
+  let hadError = false
 
   try {
     const resp = await fetch('/api/chat/stream', {
@@ -102,6 +103,8 @@ async function handleSend(text: string, enableSearch: boolean = false) {
 
 async function resumeStream(params: any) {
   store.isStreaming = true
+  let hadError = false
+  let interrupted = false
   try {
     const resp = await fetch('/api/chat/resume', {
       method: 'POST',
@@ -127,8 +130,12 @@ async function resumeStream(params: any) {
           store.applyAgentEvent(aiIdx, event)
         } else if (event.type === 'token') {
           aiContent += event.content; const msg = store.messages[aiIdx]; if (msg) msg.content = aiContent
+        } else if (event.type === 'error') {
+          hadError = true
+          store.applyAgentEvent(aiIdx, { type: 'progress', name: '错误', status: 'error', node_kind: 'stage', detail: event.content || event.name })
         } else if (event.type === 'interrupt') {
           // 递归处理下一个中断
+          interrupted = true
           store.isStreaming = false
           const ir = JSON.parse(event.content || '{}')
           if (ir.type === 'travel_param_missing') {
@@ -144,20 +151,44 @@ async function resumeStream(params: any) {
         }
       }
     }
+  } catch (e: any) {
+    hadError = true
   } finally {
     store.isStreaming = false
+    // 还有后续中断时不收尾（交给下一段 resume）
+    if (!interrupted) {
+      const aiIdx = store.lastAiMsgIndex()
+      const msg = store.messages[aiIdx]
+      if (msg && msg.steps) {
+        const endStatus = hadError ? 'error' : 'completed'
+        for (const s of msg.steps) {
+          if (s.status === 'running' || s.status === 'in_progress') s.status = endStatus
+          if (s.thinking && s.thinking.status === 'running') s.thinking.status = endStatus
+          if (s.tools) for (const t of s.tools) if (t.status === 'running') t.status = endStatus
+        }
+      }
+      if (msg && !msg.content && hadError) {
+        msg.content = '任务执行异常，请检查错误日志，稍后重试！'
+      }
+    }
   }
 }
           } else if (event.type === 'done') {
             // 流结束，finally 块统一收尾
           } else if (event.type === 'result') {
             currentChatId.value = event.chat_id || ''
+            const rmsg = store.messages[aiIdx]
+            if (rmsg && event.chat_id) rmsg.chatId = event.chat_id
             // 实时更新左侧会话列表标题
             if (event.session_title) {
               store.updateSessionTitle(store.currentSessionId, event.session_title)
             }
           } else if (event.type === 'error') {
-            store.applyAgentEvent(aiIdx, { type: 'progress', name: '错误', status: 'fail', node_kind: 'stage', detail: event.content || event.name })
+            hadError = true
+            // 绑定 chat_id，供错误详情弹窗查询 execution_error_log
+            const emsg = store.messages[aiIdx]
+            if (emsg && event.chat_id) emsg.chatId = event.chat_id
+            store.applyAgentEvent(aiIdx, { type: 'progress', name: '错误', status: 'error', node_kind: 'stage', detail: event.content || event.name })
           }
         } catch {
           // 跳过无法解析的行
@@ -168,7 +199,8 @@ async function resumeStream(params: any) {
     if (e.name === 'AbortError') {
       wasAborted = true
     } else {
-      store.applyAgentEvent(aiIdx, { type: 'progress', name: '连接失败', status: 'fail', node_kind: 'stage', detail: e.message })
+      hadError = true
+      store.applyAgentEvent(aiIdx, { type: 'progress', name: '连接失败', status: 'error', node_kind: 'stage', detail: e.message })
     }
   } finally {
     store.isStreaming = false
@@ -176,7 +208,8 @@ async function resumeStream(params: any) {
     const msg = store.messages[aiIdx]
     if (msg) {
       if (msg.steps) {
-        const endStatus = wasAborted ? 'terminated' : 'completed'
+        // 异常→error(红)，手动终止→terminated(橙)，正常→completed
+        const endStatus = wasAborted ? 'terminated' : (hadError ? 'error' : 'completed')
         for (const s of msg.steps) {
           if (s.status === 'running' || s.status === 'in_progress') s.status = endStatus
           if (s.thinking && s.thinking.status === 'running') s.thinking.status = endStatus
@@ -184,7 +217,9 @@ async function resumeStream(params: any) {
         }
       }
       if (!msg.content) {
-        msg.content = wasAborted ? '（任务已被手动终止）' : '（任务执行中，请稍后）'
+        msg.content = wasAborted
+          ? '（任务已被手动终止）'
+          : (hadError ? '任务执行异常，请检查错误日志，稍后重试！' : '（任务执行中，请稍后）')
       }
     }
     if (wasAborted) {

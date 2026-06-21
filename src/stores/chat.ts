@@ -32,6 +32,7 @@ export interface AgentStep {
   intent?: string
   cost_ms?: number
   detail?: string
+  attempt?: number              // 节点执行次数（含首次），>1 表示发生过重试
   react_round?: number          // 仅用于去重区分 ReAct 各轮，不展示
   thinking?: ThinkingItem
   tools?: ToolItem[]
@@ -105,8 +106,15 @@ function applyEvent(steps: AgentStep[], ev: any) {
     if (ev.intent) patch.intent = ev.intent
     if (ev.detail) patch.detail = ev.detail
     const existing = steps.find((s) => s._key === key)
-    if (existing) Object.assign(existing, patch, { cost_ms: Math.max(existing.cost_ms || 0, ev.cost_ms || 0) })
-    else steps.push(patch as AgentStep)
+    if (existing) {
+      // 重试时同名同轮事件合并，attempt 取最大（保留重试次数）
+      const attempt = Math.max(existing.attempt || 0, ev.attempt || 0)
+      Object.assign(existing, patch, { cost_ms: Math.max(existing.cost_ms || 0, ev.cost_ms || 0) })
+      if (attempt) existing.attempt = attempt
+    } else {
+      if (ev.attempt) patch.attempt = ev.attempt
+      steps.push(patch as AgentStep)
+    }
     return
   }
 

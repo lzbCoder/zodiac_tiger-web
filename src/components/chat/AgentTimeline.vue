@@ -72,6 +72,7 @@ function toggleThinking(step: AgentStep) {
           >
             <span class="tl-name">{{ step.step || step.name }}</span>
             <span v-if="step.cost_ms && step.status === 'completed'" class="tl-cost">{{ fmtCost(step.cost_ms) }}</span>
+            <span v-if="step.attempt && step.attempt > 1" class="tl-retry">重试 {{ step.attempt - 1 }} 次</span>
             <!-- 优化2：有子步骤的 stage 节点显示折叠箭头，紧贴文字右侧 -->
             <el-icon
               v-if="step.kind !== 'substep' && stageHasSubsteps(idx)"
@@ -248,6 +249,17 @@ function toggleThinking(step: AgentStep) {
 .tl-cost {
   font-size: 10px;
   color: rgba(255, 255, 255, 0.35);
+  flex-shrink: 0;
+}
+
+// 重试次数徽标
+.tl-retry {
+  font-size: 10px;
+  color: #ff9500;
+  border: 1px solid rgba(255, 149, 0, 0.4);
+  border-radius: 8px;
+  padding: 0 6px;
+  line-height: 14px;
   flex-shrink: 0;
 }
 

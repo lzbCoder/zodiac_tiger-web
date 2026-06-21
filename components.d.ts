@@ -11,6 +11,7 @@ declare module 'vue' {
     AgentTimeline: typeof import('./src/components/chat/AgentTimeline.vue')['default']
     AppLayout: typeof import('./src/components/layout/AppLayout.vue')['default']
     ChartContainer: typeof import('./src/components/chat/ChartContainer.vue')['default']
+    ChatAlert: typeof import('./src/components/chat/ChatAlert.vue')['default']
     ChatInput: typeof import('./src/components/chat/ChatInput.vue')['default']
     ChatWindow: typeof import('./src/components/chat/ChatWindow.vue')['default']
     ElButton: typeof import('element-plus/es')['ElButton']

@@ -6,6 +6,7 @@ import MarkdownIt from 'markdown-it'
 import { ElMessage } from 'element-plus'
 import * as echarts from 'echarts'
 import AgentFlow from './AgentFlow.vue'
+import ChatAlert from './ChatAlert.vue'
 
 const store = useChatStore()
 
@@ -17,6 +18,10 @@ const props = defineProps<{
 const isUser = computed(() => props.message.role === 'user')
 const isAi = computed(() => props.message.role === 'ai')
 const hasSteps = computed(() => isAi.value && props.message.steps && props.message.steps.length > 0)
+
+// 终止/异常提示：命中后用 ChatAlert 替代 Markdown 渲染
+const ALERT_TEXTS = ['（任务已被手动终止）', '任务执行异常，请检查错误日志，稍后重试！']
+const isAlert = computed(() => isAi.value && ALERT_TEXTS.includes((props.message.content || '').trim()))
 const isSelected = computed(() => store.selectedMsgIndex === props.msgIndex)
 
 function handleSelect() {
@@ -293,7 +298,14 @@ watch(() => store.isStreaming, (val) => {
         v-if="hasSteps"
         :steps="message.steps!"
       />
+      <!-- 终止/异常：统一提示框（替代 Markdown） -->
+      <ChatAlert
+        v-if="isAlert"
+        :content="message.content"
+        :chat-id="message.chatId"
+      />
       <div
+        v-else
         ref="aiContentRef"
         class="markdown-body"
         @click="onMarkdownClick"

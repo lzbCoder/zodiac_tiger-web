@@ -12,6 +12,10 @@ export function getHistory(sessionId: string) {
   return api.get('/chat/history', { params: { session_id: sessionId } })
 }
 
+export function getErrorLog(chatId: string) {
+  return api.get(`/chat/error/${chatId}`)
+}
+
 export function getSessionList() {
   return api.get('/chat/session/list')
 }
