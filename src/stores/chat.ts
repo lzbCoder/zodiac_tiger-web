@@ -5,6 +5,7 @@ import { getSessionList, deleteSession as deleteSessionApi } from '@/api/chat'
 /** 工具调用附属条目（🔧），挂在子步骤下，可折叠展开看入参/返回 JSON */
 export interface ToolItem {
   tool_name?: string
+  tool_run_id?: string   // 每次调用唯一，支持同名工具并行各占一条
   tool_args?: string
   tool_result?: string
   status: string
@@ -144,8 +145,13 @@ function applyEvent(steps: AgentStep[], ev: any) {
     if (!attach || !toolName) return
     const target = _ensureStep(steps, attach, ev.react_round)
     if (!target.tools) target.tools = []
-    const ti = target.tools.findIndex((t) => t.tool_name === toolName)
+    // 去重键：优先 tool_run_id（同名并行各占一条），回退 tool_name
+    const runId: string = ev.tool_run_id || ''
+    const ti = runId
+      ? target.tools.findIndex((t) => t.tool_run_id === runId)
+      : target.tools.findIndex((t) => t.tool_name === toolName && !t.tool_run_id)
     const patch: Partial<ToolItem> = { tool_name: toolName, status: _normStatus(ev.status) }
+    if (runId) patch.tool_run_id = runId
     if (ev.tool_args !== undefined) patch.tool_args = ev.tool_args
     if (ev.tool_result !== undefined) patch.tool_result = ev.tool_result
     if (ev.cost_ms) patch.cost_ms = ev.cost_ms
