@@ -11,6 +11,7 @@ import {
   getMcpAgentBind, updateMcpAgentBind,
   type McpServer, type McpTool,
 } from '@/api/mcp_server'
+import { AGENT_BIND_OPTIONS as AGENT_OPTIONS } from '@/constants/agents'
 
 // ==================== 主列表 ====================
 const servers = ref<McpServer[]>([])
@@ -242,13 +243,6 @@ const bindVisible = ref(false)
 const bindLoading = ref(false)
 const bindMcpKey = ref('')
 const selectedAgents = ref<string[]>([])
-
-const AGENT_OPTIONS = [
-  { code: 'chat_agent', label: '💬 通用闲聊 Agent', disabled: true },
-  { code: 'report_agent', label: '📊 数据分析 Agent', disabled: false },
-  { code: 'travel_agent', label: '🗺️ 旅游规划 Agent', disabled: false },
-  { code: 'assistant_agent', label: '🤖 综合助手 Agent', disabled: false },
-]
 
 async function handleBindAgent(row: McpServer) {
   bindMcpKey.value = row.mcp_key
@@ -514,7 +508,7 @@ onMounted(fetchList)
       width="480px"
       @close="bindVisible = false"
     >
-      <div class="bind-desc">勾选允许使用该 MCP 服务工具的 Agent（chat_agent 为纯闲聊，不支持工具）</div>
+      <div class="bind-desc">勾选允许使用该 MCP 服务工具的 Agent（仅数据分析、综合助手支持；通用闲聊、旅游规划不支持）</div>
       <div v-loading="bindLoading" class="agent-list">
         <div v-for="opt in AGENT_OPTIONS" :key="opt.code" class="agent-item">
           <el-checkbox
