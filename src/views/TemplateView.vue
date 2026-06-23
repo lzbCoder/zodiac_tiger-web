@@ -18,7 +18,6 @@ const editingData = ref<any>(null)
 const categories = [
   { label: '全部', value: '' },
   { label: '通用对话', value: 'common' },
-  { label: '数据报表', value: 'report' },
   { label: '旅游规划', value: 'travel' },
   { label: '智能助手', value: 'assistant' },
 ]

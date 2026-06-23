@@ -508,7 +508,7 @@ onMounted(fetchList)
       width="480px"
       @close="bindVisible = false"
     >
-      <div class="bind-desc">勾选允许使用该 MCP 服务工具的 Agent（仅数据分析、综合助手支持；通用闲聊、旅游规划不支持）</div>
+      <div class="bind-desc">勾选允许使用该 MCP 服务工具的 Agent（仅综合助手支持；通用闲聊、旅游规划不支持）</div>
       <div v-loading="bindLoading" class="agent-list">
         <div v-for="opt in AGENT_OPTIONS" :key="opt.code" class="agent-item">
           <el-checkbox

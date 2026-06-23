@@ -23,7 +23,6 @@ const emit = defineEmits<{
 const categoryLabel = computed(() => {
   const map: Record<string, string> = {
     common: '通用对话',
-    report: '数据报表',
     travel: '旅游规划',
     assistant: '智能助手',
   }
@@ -33,7 +32,6 @@ const categoryLabel = computed(() => {
 const categoryColor = computed(() => {
   const map: Record<string, string> = {
     common: 'var(--neon-cyan)',
-    report: 'var(--neon-purple)',
     travel: '#00ff88',
     assistant: '#ff9f43',
   }
