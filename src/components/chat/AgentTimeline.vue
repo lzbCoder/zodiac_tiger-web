@@ -410,6 +410,17 @@ function toggleThinking(step: AgentStep) {
   overflow-y: auto;
   white-space: pre-wrap;
   line-height: 1.5;
+
+  // 自定义细滚动条：配色走主题变量，适配深色主题（仅作用于思考块）
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) transparent;
+  &::-webkit-scrollbar { width: 4px; }
+  &::-webkit-scrollbar-track { background: transparent; }
+  &::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb);
+    border-radius: 2px;
+    &:hover { background: var(--scrollbar-thumb-hover); }
+  }
 }
 
 // 工具展开详情
