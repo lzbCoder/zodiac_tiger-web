@@ -86,9 +86,10 @@ function handleKeydown(e: KeyboardEvent) {
           </button>
 
           <!-- 模型选择：仅切换最终 AI 回复使用的模型 -->
-          <el-dropdown trigger="click" placement="top-start" @command="onSelectModel">
-            <span class="model-select">
+          <el-dropdown trigger="click" placement="top-start" popper-class="model-dropdown-popper" @command="onSelectModel">
+            <span class="search-toggle model-select">
               <el-icon :size="14"><Cpu /></el-icon>
+              <span>模型</span>
               <span class="model-name">{{ currentModel }}</span>
               <el-icon :size="12" class="model-arrow"><ArrowDown /></el-icon>
             </span>
@@ -191,11 +192,14 @@ function handleKeydown(e: KeyboardEvent) {
 }
 
 .search-toggle {
+  box-sizing: border-box;
+  height: 26px;
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 3px 10px;
+  padding: 0 10px;
   font-size: 12px;
+  line-height: 1;
   color: rgba(255, 255, 255, 0.4);
   background: transparent;
   border: 1px solid rgba(255, 255, 255, 0.12);
@@ -216,27 +220,11 @@ function handleKeydown(e: KeyboardEvent) {
   }
 }
 
-// 模型选择按钮（与联网搜索同款胶囊样式）
+// 模型选择按钮：复用 .search-toggle 的胶囊基样式，保证与联网搜索框完全等大，
+// 这里只补充模型选择特有的细节
 .model-select {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 3px 10px;
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.4);
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 14px;
-  cursor: pointer;
-  transition: all 0.2s;
-  white-space: nowrap;
   outline: none;
   user-select: none;
-
-  &:hover {
-    border-color: rgba(0, 238, 255, 0.3);
-    color: rgba(255, 255, 255, 0.7);
-  }
 
   .model-name {
     font-family: 'Consolas', 'Monaco', monospace;
@@ -315,9 +303,20 @@ function handleKeydown(e: KeyboardEvent) {
 }
 </style>
 
-<!-- 模型下拉菜单为 teleport 渲染，当前项高亮需非 scoped 样式 -->
+<!-- 模型下拉菜单为 teleport 渲染，需非 scoped 样式；用 popper-class 限定仅作用于本下拉 -->
 <style>
-.el-dropdown-menu__item.is-active {
+.model-dropdown-popper .el-dropdown-menu__item {
+  color: var(--text-primary);
+}
+
+/* 去掉 Element 默认的浅色高亮，改用暗色主题的青色高亮 */
+.model-dropdown-popper .el-dropdown-menu__item:not(.is-disabled):hover,
+.model-dropdown-popper .el-dropdown-menu__item:not(.is-disabled):focus {
+  background-color: rgba(0, 238, 255, 0.12);
+  color: var(--neon-cyan);
+}
+
+.model-dropdown-popper .el-dropdown-menu__item.is-active {
   color: var(--neon-cyan);
   font-weight: 600;
 }
