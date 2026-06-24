@@ -38,9 +38,7 @@ function handleToggle() {
             v-show="item.enable"
             class="help-item"
           >
-            <div class="help-item-icon">
-              {{ item.icon === 'map' ? '🗺️' : item.icon === 'chart' ? '📊' : '💬' }}
-            </div>
+          
             <div class="help-item-body">
               <div class="help-item-title">{{ item.show_name }}</div>
               <div class="help-item-desc">{{ item.intent_desc }}</div>

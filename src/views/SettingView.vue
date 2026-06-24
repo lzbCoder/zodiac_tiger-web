@@ -1,38 +1,47 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import GlassCard from '@/components/common/GlassCard.vue'
-import { getLangSmithStatus, toggleLangSmith } from '@/api/settings'
+import { getLangSmithStatus, toggleLangSmith, getLogConfig, saveLogConfig } from '@/api/settings'
 import { getIntentDisplayList, saveIntentConfig } from '@/api/intent_display'
 import type { IntentDisplayItem } from '@/api/intent_display'
 import { ElMessage } from 'element-plus'
+import { Document, SwitchFilled, Opportunity } from '@element-plus/icons-vue'
 
-const activeMenu = ref('model')
+const activeMenu = ref('log')
 
 const menus = [
-  { key: 'model', label: '模型配置', icon: 'Cpu' },
-  { key: 'cache', label: '缓存管理', icon: 'Coin' },
-  { key: 'log', label: '日志配置', icon: 'Document' },
-  { key: 'theme', label: '主题设置', icon: 'Brush' },
-  { key: 'feature', label: '特性开关', icon: 'SwitchFilled' },
-  { key: 'intent', label: '意图配置', icon: 'Opportunity' },
+  { key: 'log', label: '日志配置', icon: Document },
+  { key: 'feature', label: '特性开关', icon: SwitchFilled },
+  { key: 'intent', label: '意图配置', icon: Opportunity },
 ]
-
-const modelForm = ref({
-  model: 'qwen3-max',
-  temperature: 0.7,
-  maxTokens: 2048,
-})
-
-const cacheForm = ref({
-  sessionTtl: 24,
-  skillCache: true,
-})
 
 const logForm = ref({
   level: 'INFO',
-  rotationSize: 10,
+  rotationSize: 2,
   retentionDays: 30,
 })
+const logSaving = ref(false)
+
+async function fetchLogConfig() {
+  try {
+    const res: any = await getLogConfig()
+    logForm.value = {
+      level: res.data.level,
+      rotationSize: res.data.rotationSize,
+      retentionDays: res.data.retentionDays,
+    }
+  } catch { /* handled by interceptor */ }
+}
+
+async function saveLog() {
+  logSaving.value = true
+  try {
+    await saveLogConfig({ ...logForm.value })
+    ElMessage.success('日志配置已保存（级别/大小实时生效，保留天数下次切割生效）')
+  } catch { /* handled */ } finally {
+    logSaving.value = false
+  }
+}
 
 // ---- 特性开关 ----
 const langsmithEnabled = ref(false)
@@ -109,6 +118,7 @@ function intentIcon(icon: string | null): string {
 onMounted(() => {
   fetchLangSmith()
   fetchIntentList()
+  fetchLogConfig()
 })
 </script>
 
@@ -133,37 +143,6 @@ onMounted(() => {
       </div>
 
       <div class="setting-content">
-        <!-- 模型配置 -->
-        <GlassCard v-if="activeMenu === 'model'">
-          <h3 class="section-title">模型参数配置</h3>
-          <el-form :model="modelForm" label-position="top">
-            <el-form-item label="模型名称">
-              <el-input v-model="modelForm.model" disabled />
-            </el-form-item>
-            <el-form-item label="温度 (Temperature)">
-              <el-slider v-model="modelForm.temperature" :min="0" :max="2" :step="0.1" show-input />
-            </el-form-item>
-            <el-form-item label="最大 Token 数">
-              <el-input-number v-model="modelForm.maxTokens" :min="256" :max="8192" style="width:100%" />
-            </el-form-item>
-            <el-button type="primary">保存配置</el-button>
-          </el-form>
-        </GlassCard>
-
-        <!-- 缓存管理 -->
-        <GlassCard v-if="activeMenu === 'cache'">
-          <h3 class="section-title">缓存管理</h3>
-          <el-form :model="cacheForm" label-position="top">
-            <el-form-item label="会话过期时间(小时)">
-              <el-input-number v-model="cacheForm.sessionTtl" :min="1" :max="168" style="width:100%" />
-            </el-form-item>
-            <el-form-item label="启用技能热缓存">
-              <el-switch v-model="cacheForm.skillCache" />
-            </el-form-item>
-            <el-button type="danger" plain>清除所有缓存</el-button>
-          </el-form>
-        </GlassCard>
-
         <!-- 日志配置 -->
         <GlassCard v-if="activeMenu === 'log'">
           <h3 class="section-title">日志配置</h3>
@@ -177,20 +156,13 @@ onMounted(() => {
               </el-select>
             </el-form-item>
             <el-form-item label="日志切割大小(MB)">
-              <el-input-number v-model="logForm.rotationSize" :min="1" :max="100" style="width:100%" />
+              <el-input-number v-model="logForm.rotationSize" :min="1" :max="5" style="width:100%" />
             </el-form-item>
             <el-form-item label="日志保留天数">
-              <el-input-number v-model="logForm.retentionDays" :min="1" :max="90" style="width:100%" />
+              <el-input-number v-model="logForm.retentionDays" :min="7" :max="60" style="width:100%" />
             </el-form-item>
-            <el-button type="primary">保存配置</el-button>
+            <el-button type="primary" :loading="logSaving" @click="saveLog">保存配置</el-button>
           </el-form>
-        </GlassCard>
-
-        <!-- 主题设置 -->
-        <GlassCard v-if="activeMenu === 'theme'">
-          <h3 class="section-title">主题设置</h3>
-          <p style="color:var(--text-secondary)">当前主题：科技霓虹 (深色)</p>
-          <p style="color:var(--text-secondary);margin-top:8px">主色: #00EEFF | 辅助色: #7B61FF | 强调色: #FF4499</p>
         </GlassCard>
 
         <!-- 特性开关 -->
@@ -219,7 +191,6 @@ onMounted(() => {
           <div v-for="item in intentList" :key="item.intent_key" class="feature-item">
             <div class="feature-info">
               <div class="feature-name">
-                <span style="margin-right:6px">{{ intentIcon(item.icon) }}</span>
                 {{ item.show_name }}
                 <el-tag size="small" style="margin-left:8px">{{ item.intent_key }}</el-tag>
               </div>
@@ -274,19 +245,24 @@ onMounted(() => {
 <style scoped lang="scss">
 .setting-view {
   height: 100%;
-  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 .setting-body {
   display: flex;
   gap: 20px;
   margin-top: 16px;
+  flex: 1;
+  min-height: 0;          /* 允许子区域内部滚动而非撑大整体 */
 }
 
 .setting-menu {
   width: 200px;
   padding: 12px;
-  flex-shrink: 0;
+  flex-shrink: 0;         /* 左侧固定宽度，不随内容收缩 */
+  align-self: stretch;    /* 占满整列高度 */
 }
 
 .setting-menu-item {
@@ -313,6 +289,15 @@ onMounted(() => {
 
 .setting-content {
   flex: 1;
+  min-width: 0;           /* 右侧固定占据剩余宽度，不随内容变动 */
+  display: flex;
+}
+
+/* 当前显示的卡片占满右侧区域，内容超出时内部滚动，切换菜单不再改变区域大小 */
+.setting-content > * {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
 }
 
 .section-title {
