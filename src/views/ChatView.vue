@@ -55,6 +55,7 @@ async function handleSend(text: string, enableSearch: boolean = false) {
         session_id: store.currentSessionId,
         message: text,
         enable_search: enableSearch,
+        reply_model: store.replyModel,
       }),
     })
 
@@ -109,7 +110,7 @@ async function resumeStream(params: any) {
     const resp = await fetch('/api/chat/resume', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ params, chat_id: currentChatId.value, config: { configurable: { thread_id: `admin:${store.currentSessionId}` } } }),
+      body: JSON.stringify({ params, chat_id: currentChatId.value, config: { configurable: { thread_id: `admin:${store.currentSessionId}`, reply_model: store.replyModel } } }),
     })
     const reader = resp.body?.getReader()
     if (!reader) { store.isStreaming = false; return }

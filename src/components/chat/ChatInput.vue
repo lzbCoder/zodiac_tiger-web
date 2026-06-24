@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, nextTick } from 'vue'
-import { Promotion, Connection } from '@element-plus/icons-vue'
-import { useChatStore } from '@/stores/chat'
+import { Promotion, Connection, Cpu, ArrowDown } from '@element-plus/icons-vue'
+import { useChatStore, REPLY_MODELS, DEFAULT_REPLY_MODEL } from '@/stores/chat'
 import { useIntentDisplayStore } from '@/stores/intent_display'
 
 const emit = defineEmits<{
@@ -14,6 +14,8 @@ const intentStore = useIntentDisplayStore()
 
 const inputText = ref('')
 const enableSearch = ref(false)
+// 兜底：store 异常时也始终展示一个模型名，避免触发器空白
+const currentModel = computed(() => chatStore.replyModel || DEFAULT_REPLY_MODEL)
 const canSend = computed(() => inputText.value.trim().length > 0 && !chatStore.isStreaming)
 
 const placeholderText = computed(() => {
@@ -39,6 +41,10 @@ watch(() => chatStore.prefillText, (val) => {
 
 function toggleSearch() {
   enableSearch.value = !enableSearch.value
+}
+
+function onSelectModel(model: string) {
+  chatStore.setReplyModel(model)
 }
 
 function handleSend() {
@@ -78,6 +84,27 @@ function handleKeydown(e: KeyboardEvent) {
             <el-icon :size="14"><Connection /></el-icon>
             <span>联网搜索</span>
           </button>
+
+          <!-- 模型选择：仅切换最终 AI 回复使用的模型 -->
+          <el-dropdown trigger="click" placement="top-start" @command="onSelectModel">
+            <span class="model-select">
+              <el-icon :size="14"><Cpu /></el-icon>
+              <span class="model-name">{{ currentModel }}</span>
+              <el-icon :size="12" class="model-arrow"><ArrowDown /></el-icon>
+            </span>
+            <template #dropdown>
+              <el-dropdown-menu>
+                <el-dropdown-item
+                  v-for="m in REPLY_MODELS"
+                  :key="m"
+                  :command="m"
+                  :class="{ 'is-active': m === currentModel }"
+                >
+                  {{ m }}
+                </el-dropdown-item>
+              </el-dropdown-menu>
+            </template>
+          </el-dropdown>
         </div>
 
         <!-- 任务执行中：红色终止按钮 -->
@@ -189,6 +216,38 @@ function handleKeydown(e: KeyboardEvent) {
   }
 }
 
+// 模型选择按钮（与联网搜索同款胶囊样式）
+.model-select {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.4);
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+  outline: none;
+  user-select: none;
+
+  &:hover {
+    border-color: rgba(0, 238, 255, 0.3);
+    color: rgba(255, 255, 255, 0.7);
+  }
+
+  .model-name {
+    font-family: 'Consolas', 'Monaco', monospace;
+    color: var(--neon-cyan);
+  }
+
+  .model-arrow {
+    opacity: 0.6;
+  }
+}
+
 // 发送 / 终止按钮共用基础
 .action-btn {
   position: absolute;
@@ -253,5 +312,13 @@ function handleKeydown(e: KeyboardEvent) {
   background: currentColor;
   border-radius: 2px;
   flex-shrink: 0;
+}
+</style>
+
+<!-- 模型下拉菜单为 teleport 渲染，当前项高亮需非 scoped 样式 -->
+<style>
+.el-dropdown-menu__item.is-active {
+  color: var(--neon-cyan);
+  font-weight: 600;
 }
 </style>

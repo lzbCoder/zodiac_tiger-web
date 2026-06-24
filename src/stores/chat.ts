@@ -1,4 +1,4 @@
-import { defineStore } from 'pinia'
+import { defineStore, acceptHMRUpdate } from 'pinia'
 import { ref } from 'vue'
 import {
   getSessionList,
@@ -62,6 +62,11 @@ export interface Session {
   createTime: string
   pinned: boolean
 }
+
+/** 前端内置的"最终 AI 回复"可选模型（均为阿里百炼模型，仅切换名称） */
+export const REPLY_MODELS = ['qwen3.7-plus', 'qwen3.6-flash', 'deepseek-v4-pro', 'ZHIPU/GLM-5.2'] as const
+export const DEFAULT_REPLY_MODEL = 'qwen3.7-plus'
+const REPLY_MODEL_STORAGE_KEY = 'reply-model'
 
 // ---- 扁平时间线：事件 → 步骤 的统一应用逻辑（流式 + 历史回显共用）----
 
@@ -177,6 +182,19 @@ export const useChatStore = defineStore('chat', () => {
   const prefillText = ref('')
   /** 新建会话能力选择弹窗 */
   const showNewSessionDialog = ref(false)
+
+  /** 用户选择的"最终 AI 回复"模型，localStorage 持久化，默认 qwen3.7-plus */
+  const _storedModel = localStorage.getItem(REPLY_MODEL_STORAGE_KEY)
+  const replyModel = ref(
+    _storedModel && (REPLY_MODELS as readonly string[]).includes(_storedModel)
+      ? _storedModel
+      : DEFAULT_REPLY_MODEL,
+  )
+
+  function setReplyModel(model: string) {
+    replyModel.value = model
+    localStorage.setItem(REPLY_MODEL_STORAGE_KEY, model)
+  }
 
   function setPrefill(text: string) {
     prefillText.value = text
@@ -320,6 +338,8 @@ export const useChatStore = defineStore('chat', () => {
     prefillText,
     setPrefill,
     showNewSessionDialog,
+    replyModel,
+    setReplyModel,
     selectedMsgIndex,
     selectMsgIndex,
     clearSelection,
@@ -337,3 +357,8 @@ export const useChatStore = defineStore('chat', () => {
     resetChat,
   }
 })
+
+// 开发期 HMR：store 模块热更新时原地替换，避免组件持有旧实例导致状态不同步
+if (import.meta.hot) {
+  import.meta.hot.accept(acceptHMRUpdate(useChatStore, import.meta.hot))
+}
