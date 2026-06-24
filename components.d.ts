@@ -41,6 +41,7 @@ declare module 'vue' {
     HelpFloating: typeof import('./src/components/chat/HelpFloating.vue')['default']
     LoadingSpinner: typeof import('./src/components/common/LoadingSpinner.vue')['default']
     MessageBubble: typeof import('./src/components/chat/MessageBubble.vue')['default']
+    MountainLogo: typeof import('./src/components/icons/MountainLogo.vue')['default']
     NeonButton: typeof import('./src/components/common/NeonButton.vue')['default']
     NewSessionDialog: typeof import('./src/components/chat/NewSessionDialog.vue')['default']
     ParticleBg: typeof import('./src/components/common/ParticleBg.vue')['default']

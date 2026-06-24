@@ -7,7 +7,6 @@ import {
   Monitor,
   Folder,
   Setting,
-  Cpu,
 } from '@element-plus/icons-vue'
 
 const router = useRouter()

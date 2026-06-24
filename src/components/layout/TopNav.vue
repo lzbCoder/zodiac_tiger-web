@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
 import { useThemeStore } from '@/stores/theme'
-import { Cpu, Moon, Sunny } from '@element-plus/icons-vue'
+import { Moon, Sunny } from '@element-plus/icons-vue'
+import MountainLogo from '@/components/icons/MountainLogo.vue'
 
 const router = useRouter()
 const themeStore = useThemeStore()
@@ -21,7 +22,7 @@ function goHome() {
       <el-tooltip content="返回首页" placement="bottom">
         <button class="brand-icon-btn" @click="goHome">
           <el-icon :size="24" class="brand-icon">
-            <Cpu />
+            <MountainLogo />
           </el-icon>
         </button>
       </el-tooltip>
