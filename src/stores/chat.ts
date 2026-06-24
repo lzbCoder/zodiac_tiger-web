@@ -1,6 +1,11 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { getSessionList, deleteSession as deleteSessionApi } from '@/api/chat'
+import {
+  getSessionList,
+  deleteSession as deleteSessionApi,
+  renameSession as renameSessionApi,
+  pinSession as pinSessionApi,
+} from '@/api/chat'
 
 /** 工具调用附属条目（🔧），挂在子步骤下，可折叠展开看入参/返回 JSON */
 export interface ToolItem {
@@ -55,6 +60,7 @@ export interface Session {
   title: string
   lastTime: string
   createTime: string
+  pinned: boolean
 }
 
 // ---- 扁平时间线：事件 → 步骤 的统一应用逻辑（流式 + 历史回显共用）----
@@ -199,6 +205,7 @@ export const useChatStore = defineStore('chat', () => {
         title: s.title,
         lastTime: s.last_time,
         createTime: s.create_time,
+        pinned: !!s.pinned,
       }))
     } catch {
       // silently fail if backend unreachable
@@ -226,9 +233,25 @@ export const useChatStore = defineStore('chat', () => {
     sessions.value.unshift(session)
   }
 
+  /** 仅更新本地标题（流式 result 自动命名用，不落库） */
   function updateSessionTitle(id: string, title: string) {
     const s = sessions.value.find((x) => x.id === id)
     if (s) s.title = title
+  }
+
+  /** 重命名会话：持久化到后端，成功后更新本地 */
+  async function renameSession(id: string, title: string) {
+    await renameSessionApi(id, title)
+    const s = sessions.value.find((x) => x.id === id)
+    if (s) s.title = title
+  }
+
+  /** 置顶/取消置顶：持久化后重新拉取列表以应用新排序 */
+  async function togglePin(id: string) {
+    const s = sessions.value.find((x) => x.id === id)
+    if (!s) return
+    await pinSessionApi(id, !s.pinned)
+    await fetchSessions()
   }
 
   /** execution_events → 扁平 steps（历史回显） */
@@ -304,6 +327,8 @@ export const useChatStore = defineStore('chat', () => {
     setSessionId,
     addSession,
     updateSessionTitle,
+    renameSession,
+    togglePin,
     removeSession,
     addMessage,
     setMessages,

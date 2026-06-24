@@ -180,9 +180,13 @@ async function resumeStream(params: any) {
             currentChatId.value = event.chat_id || ''
             const rmsg = store.messages[aiIdx]
             if (rmsg && event.chat_id) rmsg.chatId = event.chat_id
-            // 实时更新左侧会话列表标题
+            // 实时更新左侧会话列表标题：仅对未命名会话（首条消息）自动命名，
+            // 避免覆盖用户已重命名的标题（标题以后端持久化为准）
             if (event.session_title) {
-              store.updateSessionTitle(store.currentSessionId, event.session_title)
+              const cur = store.sessions.find((x) => x.id === store.currentSessionId)
+              if (!cur || !cur.title || cur.title === '新会话') {
+                store.updateSessionTitle(store.currentSessionId, event.session_title)
+              }
             }
           } else if (event.type === 'error') {
             hadError = true

@@ -28,7 +28,7 @@ async function createSession() {
   const now = new Date()
   const pad = (n: number) => String(n).padStart(2, '0')
   const ct = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`
-  chatStore.addSession({ id: sid, title: '新会话', lastTime: '刚刚', createTime: ct })
+  chatStore.addSession({ id: sid, title: '新会话', lastTime: '刚刚', createTime: ct, pinned: false })
   chatStore.setSessionId(sid)
   chatStore.resetChat()
 }

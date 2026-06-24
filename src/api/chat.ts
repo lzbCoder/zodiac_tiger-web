@@ -27,3 +27,11 @@ export function newSession() {
 export function deleteSession(sessionId: string) {
   return api.delete('/chat/session', { params: { session_id: sessionId } })
 }
+
+export function renameSession(sessionId: string, title: string) {
+  return api.post('/chat/session/rename', { session_id: sessionId, title })
+}
+
+export function pinSession(sessionId: string, pinned: boolean) {
+  return api.post('/chat/session/pin', { session_id: sessionId, pinned })
+}

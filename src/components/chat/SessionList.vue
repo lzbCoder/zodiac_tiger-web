@@ -2,8 +2,8 @@
 import { computed, onMounted, ref, nextTick } from 'vue'
 import { useChatStore, type Session } from '@/stores/chat'
 import { getHistory, newSession } from '@/api/chat'
-import { Plus, ChatDotRound, MoreFilled } from '@element-plus/icons-vue'
-import { ElMessageBox } from 'element-plus'
+import { Plus, ChatDotRound, MoreFilled, Top } from '@element-plus/icons-vue'
+import { ElMessage, ElMessageBox } from 'element-plus'
 
 const store = useChatStore()
 const listRef = ref<HTMLElement>()
@@ -21,10 +21,16 @@ function openRename(s: Session) {
   renameVisible.value = true
 }
 
-function confirmRename() {
+async function confirmRename() {
   const title = renameTitle.value.trim()
   if (title && renameId.value) {
-    store.updateSessionTitle(renameId.value, title)
+    try {
+      await store.renameSession(renameId.value, title)
+      ElMessage.success('重命名成功')
+    } catch {
+      ElMessage.error('重命名失败')
+      return
+    }
   }
   renameVisible.value = false
 }
@@ -45,7 +51,10 @@ const timeGroups = computed(() => {
   const weekStart = new Date(todayStart.getTime() - 6 * 86400000)
   const monthStart = new Date(todayStart.getTime() - 29 * 86400000)
 
-  const groups: { label: string; items: Session[] }[] = [
+  const pinnedGroup: { label: string; pinned: boolean; items: Session[] } = {
+    label: '置顶', pinned: true, items: [],
+  }
+  const groups: { label: string; pinned?: boolean; items: Session[] }[] = [
     { label: '今天', items: [] },
     { label: '昨天', items: [] },
     { label: '7 天内', items: [] },
@@ -53,6 +62,12 @@ const timeGroups = computed(() => {
   ]
 
   for (const s of store.sessions) {
+    // 置顶会话单独成组，不再进入时间分组
+    if (s.pinned) {
+      pinnedGroup.items.push(s)
+      continue
+    }
+
     const d = new Date(s.createTime.replace(' ', 'T'))
     const dayStart = new Date(d.getFullYear(), d.getMonth(), d.getDate())
 
@@ -67,7 +82,8 @@ const timeGroups = computed(() => {
     }
   }
 
-  return groups.filter((g) => g.items.length > 0)
+  const ordered = pinnedGroup.items.length > 0 ? [pinnedGroup, ...groups] : groups
+  return ordered.filter((g) => g.items.length > 0)
 })
 
 // ---- 新建会话 ----
@@ -89,7 +105,7 @@ async function createNewSession() {
     const now = new Date()
     const pad = (n: number) => String(n).padStart(2, '0')
     const ct = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`
-    store.addSession({ id: sid, title: '新会话', lastTime: '刚刚', createTime: ct })
+    store.addSession({ id: sid, title: '新会话', lastTime: '刚刚', createTime: ct, pinned: false })
     store.setSessionId(sid)
     store.resetChat()
     await nextTick()
@@ -113,6 +129,15 @@ async function selectSession(s: Session) {
     store.setMessages(msgs)
   } catch {
     // silently fail
+  }
+}
+
+// ---- 置顶 ----
+async function handlePin(s: Session) {
+  try {
+    await store.togglePin(s.id)
+  } catch {
+    ElMessage.error('操作失败')
   }
 }
 
@@ -145,22 +170,28 @@ async function handleDelete(s: Session) {
     <div ref="listRef" class="session-items">
       <template v-if="store.sessions.length > 0">
         <div v-for="group in timeGroups" :key="group.label" class="time-group">
-          <div class="group-label">{{ group.label }}</div>
+          <div class="group-label" :class="{ 'pinned-label': group.pinned }">
+            <el-icon v-if="group.pinned" :size="12"><Top /></el-icon>
+            <span>{{ group.label }}</span>
+          </div>
           <div
             v-for="s in group.items"
             :key="s.id"
             class="session-item"
-            :class="{ active: s.id === store.currentSessionId }"
+            :class="{ active: s.id === store.currentSessionId, 'is-pinned': s.pinned }"
             @click="selectSession(s)"
           >
             <el-icon :size="14" class="session-icon"><ChatDotRound /></el-icon>
             <span class="session-title">{{ s.title }}</span>
+            <!-- 置顶会话：默认显示置顶图标，hover 时切换为三个点菜单 -->
+            <el-icon v-if="s.pinned" :size="14" class="pin-indicator"><Top /></el-icon>
             <el-dropdown
               trigger="click"
               placement="bottom-end"
               class="more-dropdown"
               @command="(cmd: string) => {
                 if (cmd === 'rename') openRename(s)
+                else if (cmd === 'pin') handlePin(s)
                 else if (cmd === 'delete') handleDelete(s)
               }"
             >
@@ -169,6 +200,7 @@ async function handleDelete(s: Session) {
               </button>
               <template #dropdown>
                 <el-dropdown-menu>
+                  <el-dropdown-item command="pin">{{ s.pinned ? '取消置顶' : '置顶' }}</el-dropdown-item>
                   <el-dropdown-item command="rename">重命名</el-dropdown-item>
                   <el-dropdown-item command="delete" divided>删除</el-dropdown-item>
                 </el-dropdown-menu>
@@ -270,6 +302,13 @@ async function handleDelete(s: Session) {
   color: var(--text-secondary);
   padding: 12px 8px 6px;
   letter-spacing: 1px;
+
+  &.pinned-label {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: var(--color-primary);
+  }
 }
 
 // ---- 会话项 ----
@@ -313,6 +352,8 @@ async function handleDelete(s: Session) {
 }
 
 .more-btn {
+  width: 25px;
+  height: 25px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -321,22 +362,43 @@ async function handleDelete(s: Session) {
   color: rgba(255, 255, 255, 0.5);
   cursor: pointer;
   opacity: 0.3;
-  padding: 4px;
   border-radius: 4px;
-  transition: all 0.2s;
-  transform: scale(1);
+  transition: color 0.2s, background 0.2s, opacity 0.2s;
 
   &:hover {
     color: var(--color-primary);
     background: rgba(0, 238, 255, 0.12);
     opacity: 1;
-    transform: scale(1.15);
   }
 }
 
 .more-dropdown {
   flex-shrink: 0;
   line-height: 0;
+}
+
+// ---- 置顶图标：默认显示，hover 时让位给三个点菜单 ----
+.pin-indicator {
+  width: 25px;
+  height: 25px;
+  flex-shrink: 0;
+  color: var(--color-primary);
+}
+
+.session-item.is-pinned {
+  // 默认隐藏菜单，仅显示置顶图标
+  .more-dropdown {
+    display: none;
+  }
+
+  &:hover {
+    .pin-indicator {
+      display: none;
+    }
+    .more-dropdown {
+      display: inline-flex;
+    }
+  }
 }
 
 // ---- 空状态 ----

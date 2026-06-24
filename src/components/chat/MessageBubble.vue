@@ -4,6 +4,7 @@ import { useChatStore } from '@/stores/chat'
 import { computed, ref, onMounted, nextTick, watch } from 'vue'
 import MarkdownIt from 'markdown-it'
 import { ElMessage } from 'element-plus'
+import { CopyDocument, Check } from '@element-plus/icons-vue'
 import * as echarts from 'echarts'
 import AgentFlow from './AgentFlow.vue'
 import ChatAlert from './ChatAlert.vue'
@@ -27,6 +28,19 @@ const isSelected = computed(() => store.selectedMsgIndex === props.msgIndex)
 function handleSelect() {
   if (hasSteps.value) {
     store.selectMsgIndex(props.msgIndex)
+  }
+}
+
+// ---- 整条消息复制 ----
+const copied = ref(false)
+
+async function copyMessage() {
+  try {
+    await navigator.clipboard.writeText(props.message.content || '')
+    copied.value = true
+    setTimeout(() => { copied.value = false }, 2000)
+  } catch {
+    ElMessage.error('复制失败')
   }
 }
 
@@ -283,34 +297,47 @@ watch(() => store.isStreaming, (val) => {
 <template>
   <div class="message-row" :class="{ 'is-user': isUser, 'is-ai': isAi }">
     <!-- 用户消息：保留气泡框 -->
-    <div v-if="isUser" class="user-bubble">
-      {{ message.content }}
+    <div v-if="isUser" class="msg-col">
+      <div class="user-bubble">
+        {{ message.content }}
+      </div>
+      <div class="msg-actions">
+        <button class="msg-copy-btn" :title="copied ? '已复制' : '复制'" @click="copyMessage">
+          <el-icon :size="14"><Check v-if="copied" /><CopyDocument v-else /></el-icon>
+        </button>
+      </div>
     </div>
 
     <!-- AI 消息：纯 Markdown 文本流 -->
-    <div
-      v-else-if="isAi"
-      class="ai-content"
-      :class="{ selectable: hasSteps, selected: isSelected }"
-      @click="handleSelect"
-    >
-      <AgentFlow
-        v-if="hasSteps"
-        :steps="message.steps!"
-      />
-      <!-- 终止/异常：统一提示框（替代 Markdown） -->
-      <ChatAlert
-        v-if="isAlert"
-        :content="message.content"
-        :chat-id="message.chatId"
-      />
+    <div v-else-if="isAi" class="msg-col">
       <div
-        v-else
-        ref="aiContentRef"
-        class="markdown-body"
-        @click="onMarkdownClick"
-        v-html="renderedHtml"
-      />
+        class="ai-content"
+        :class="{ selectable: hasSteps, selected: isSelected }"
+        @click="handleSelect"
+      >
+        <AgentFlow
+          v-if="hasSteps"
+          :steps="message.steps!"
+        />
+        <!-- 终止/异常：统一提示框（替代 Markdown） -->
+        <ChatAlert
+          v-if="isAlert"
+          :content="message.content"
+          :chat-id="message.chatId"
+        />
+        <div
+          v-else
+          ref="aiContentRef"
+          class="markdown-body"
+          @click="onMarkdownClick"
+          v-html="renderedHtml"
+        />
+      </div>
+      <div v-if="!store.isStreaming && message.content" class="msg-actions">
+        <button class="msg-copy-btn" :title="copied ? '已复制' : '复制'" @click="copyMessage">
+          <el-icon :size="14"><Check v-if="copied" /><CopyDocument v-else /></el-icon>
+        </button>
+      </div>
     </div>
   </div>
 </template>
@@ -329,9 +356,58 @@ watch(() => store.isStreaming, (val) => {
   }
 }
 
+// ---- 消息列（气泡/正文 + 操作栏） ----
+.msg-col {
+  display: flex;
+  flex-direction: column;
+
+  .is-user & {
+    max-width: 75%;
+    align-items: flex-end;
+  }
+
+  .is-ai & {
+    width: 100%;
+    align-items: flex-start;
+  }
+}
+
+// ---- 复制等操作栏 ----
+.msg-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 4px;
+  height: 22px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.message-row:hover .msg-actions {
+  opacity: 1;
+}
+
+.msg-copy-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3px 6px;
+  color: var(--text-secondary);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    color: var(--neon-cyan);
+    border-color: rgba(0, 238, 255, 0.3);
+    background: rgba(0, 238, 255, 0.06);
+  }
+}
+
 // ---- 用户气泡（保留） ----
 .user-bubble {
-  max-width: 75%;
+  max-width: 100%;
   padding: 12px 16px;
   font-size: 14px;
   line-height: 1.7;
