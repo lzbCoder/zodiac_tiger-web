@@ -19,6 +19,7 @@ function toggle() {
   <div v-if="steps.length > 0" class="agent-flow">
     <!-- 折叠提示条 -->
     <div v-if="collapsed" class="flow-toggle" @click="toggle">
+      <span class="flow-ic">🔄</span>
       <span>Agent 执行流程 ({{ steps.length }} 步)</span>
       <el-icon :size="14"><ArrowDown /></el-icon>
     </div>
@@ -26,6 +27,7 @@ function toggle() {
     <!-- 展开完整流程 -->
     <div v-else class="flow-body">
       <div class="flow-header" @click="toggle">
+        <span class="flow-ic">🔄</span>
         <span>Agent 执行流程 ({{ steps.length }} 步)</span>
         <el-icon :size="14" class="flow-collapse-icon"><ArrowUp /></el-icon>
       </div>
@@ -83,6 +85,11 @@ function toggle() {
 .flow-collapse-icon {
   color: inherit;
   transition: color 0.2s;
+  flex-shrink: 0;
+}
+
+.flow-ic {
+  font-size: 13px;
   flex-shrink: 0;
 }
 

@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import type { ChatMessage } from '@/stores/chat'
-import { useChatStore } from '@/stores/chat'
+import { useChatStore, REPLY_NODE_NAMES } from '@/stores/chat'
 import { computed, ref, onMounted, nextTick, watch } from 'vue'
 import MarkdownIt from 'markdown-it'
 import { ElMessage } from 'element-plus'
-import { CopyDocument, Check } from '@element-plus/icons-vue'
+import { CopyDocument, Check, Loading, ArrowDown, ArrowUp } from '@element-plus/icons-vue'
 import * as echarts from 'echarts'
 import AgentFlow from './AgentFlow.vue'
 import ChatAlert from './ChatAlert.vue'
@@ -19,6 +19,19 @@ const props = defineProps<{
 const isUser = computed(() => props.message.role === 'user')
 const isAi = computed(() => props.message.role === 'ai')
 const hasSteps = computed(() => isAi.value && props.message.steps && props.message.steps.length > 0)
+
+// ---- 最终回复思维链（展示在主页面，独立于执行流程时间线）----
+const REPLY_NODE_SET = new Set<string>(REPLY_NODE_NAMES as readonly string[])
+const replyThinking = computed(() => {
+  const steps = props.message.steps
+  if (!isAi.value || !steps) return null
+  for (const s of steps) {
+    if (s.thinking && s.thinking.content && REPLY_NODE_SET.has(s.name || s.step)) return s.thinking
+  }
+  return null
+})
+// 主页面思考块的折叠状态：默认展开，用户可手动折叠
+const reasoningCollapsed = ref(false)
 
 // 终止/异常提示：命中后用 ChatAlert 替代 Markdown 渲染
 const ALERT_TEXTS = ['（任务已被手动终止）', '任务执行异常，请检查错误日志，稍后重试！']
@@ -319,6 +332,19 @@ watch(() => store.isStreaming, (val) => {
           v-if="hasSteps"
           :steps="message.steps!"
         />
+
+        <!-- 最终回复思维链：主页面展示，默认展开，可手动折叠 -->
+        <div v-if="replyThinking" class="reply-reasoning" @click.stop>
+          <div class="rr-head" @click="reasoningCollapsed = !reasoningCollapsed">
+            <span class="rr-ic">💭</span>
+            <span class="rr-title">思考过程</span>
+            <span v-if="replyThinking.cost_ms" class="rr-cost">{{ (replyThinking.cost_ms / 1000).toFixed(1) }}s</span>
+            <el-icon v-if="replyThinking.status === 'running'" class="is-loading rr-spin" :size="12"><Loading /></el-icon>
+            <el-icon :size="13" class="rr-fold"><ArrowDown v-if="reasoningCollapsed" /><ArrowUp v-else /></el-icon>
+          </div>
+          <div v-if="!reasoningCollapsed" class="rr-text">{{ replyThinking.content }}</div>
+        </div>
+
         <!-- 终止/异常：统一提示框（替代 Markdown） -->
         <ChatAlert
           v-if="isAlert"
@@ -430,6 +456,51 @@ watch(() => store.isStreaming, (val) => {
   &.selected {
     box-shadow: none;
   }
+}
+
+// ---- 最终回复思维链（主页面折叠块，样式与"Agent 执行流程"一致）----
+.reply-reasoning {
+  margin: 4px 0 10px;
+}
+
+.rr-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 0;
+  cursor: pointer;
+  user-select: none;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.5);
+  transition: color 0.2s;
+
+  &:hover { color: var(--neon-cyan); }
+}
+
+.rr-ic { font-size: 13px; flex-shrink: 0; }
+.rr-title { font-weight: 500; }
+.rr-cost { font-size: 10px; color: rgba(255, 255, 255, 0.35); flex-shrink: 0; }
+.rr-fold { flex-shrink: 0; }
+.rr-spin { animation: rr-spin 1.4s linear infinite; }
+@keyframes rr-spin { from { transform: rotate(0); } to { transform: rotate(360deg); } }
+
+.rr-text {
+  margin-top: 4px;
+  padding: 8px 10px;
+  background: rgba(0, 238, 255, 0.03);
+  border-radius: 6px;
+  font-size: 12px;
+  line-height: 1.7;
+  color: rgba(255, 255, 255, 0.5);
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 320px;
+  overflow-y: auto;
+
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) transparent;
+  &::-webkit-scrollbar { width: 4px; }
+  &::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 2px; }
 }
 
 // ---- Markdown 渲染样式 ----

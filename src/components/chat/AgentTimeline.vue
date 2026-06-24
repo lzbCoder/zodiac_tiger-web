@@ -1,10 +1,17 @@
 <script setup lang="ts">
 import type { AgentStep } from '@/stores/chat'
+import { REPLY_NODE_NAMES } from '@/stores/chat'
 import { Loading, CircleCheckFilled, CircleCloseFilled, Clock, Remove, ArrowDown, ArrowUp } from '@element-plus/icons-vue'
 
 const props = defineProps<{
   steps: AgentStep[]
 }>()
+
+// 最终回复节点的思维链只在主页面气泡展示，时间线里不重复渲染
+const REPLY_NODE_SET = new Set<string>(REPLY_NODE_NAMES as readonly string[])
+function isReplyNode(step: AgentStep): boolean {
+  return REPLY_NODE_SET.has(step.name || step.step)
+}
 
 function fmtCost(ms?: number): string {
   return ms ? `${(ms / 1000).toFixed(1)}s` : ''
@@ -90,8 +97,8 @@ function toggleThinking(step: AgentStep) {
 
           <!-- 子步骤折叠时不显示附属项 -->
           <template v-if="!step._collapsed">
-            <!-- 附属：LLM 思考（🧠，支持折叠，默认展开） -->
-            <div v-if="step.thinking" class="tl-attach tl-thinking">
+            <!-- 附属：LLM 思考（🧠，支持折叠，默认展开）；最终回复节点的思维链改在主页面展示，此处不重复 -->
+            <div v-if="step.thinking && !isReplyNode(step)" class="tl-attach tl-thinking">
               <div class="tl-attach-head clickable" @click="toggleThinking(step)">
                 <span class="tl-attach-ic">🧠</span>
                 <span class="tl-attach-title">思考</span>

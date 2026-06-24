@@ -64,9 +64,16 @@ export interface Session {
 }
 
 /** 前端内置的"最终 AI 回复"可选模型（均为阿里百炼模型，仅切换名称） */
-export const REPLY_MODELS = ['qwen3.7-plus', 'qwen3.6-flash', 'deepseek-v4-pro', 'ZHIPU/GLM-5.2'] as const
+export const REPLY_MODELS = ['qwen3.7-plus', 'qwen3.6-flash', 'deepseek-v4-pro'] as const
 export const DEFAULT_REPLY_MODEL = 'qwen3.7-plus'
+
+/** 推理型模型：思考恒开、无法关闭，必须展示思维链 */
+export const REASONING_MODELS = ['deepseek-v4-pro'] as const
 const REPLY_MODEL_STORAGE_KEY = 'reply-model'
+const SHOW_REASONING_STORAGE_KEY = 'show-reasoning'
+
+/** 最终回复节点的显示名集合：其思维链只展示在主页面气泡，不在执行流程时间线重复 */
+export const REPLY_NODE_NAMES = ['回答生成', '对话聊天', '行程生成', '行程精修'] as const
 
 // ---- 扁平时间线：事件 → 步骤 的统一应用逻辑（流式 + 历史回显共用）----
 
@@ -194,6 +201,14 @@ export const useChatStore = defineStore('chat', () => {
   function setReplyModel(model: string) {
     replyModel.value = model
     localStorage.setItem(REPLY_MODEL_STORAGE_KEY, model)
+  }
+
+  /** 是否对最终回复显示思维链（模型推理开关 + 推理过程上屏），localStorage 持久化，默认关 */
+  const showReasoning = ref(localStorage.getItem(SHOW_REASONING_STORAGE_KEY) === '1')
+
+  function setShowReasoning(v: boolean) {
+    showReasoning.value = v
+    localStorage.setItem(SHOW_REASONING_STORAGE_KEY, v ? '1' : '0')
   }
 
   function setPrefill(text: string) {
@@ -340,6 +355,8 @@ export const useChatStore = defineStore('chat', () => {
     showNewSessionDialog,
     replyModel,
     setReplyModel,
+    showReasoning,
+    setShowReasoning,
     selectedMsgIndex,
     selectMsgIndex,
     clearSelection,

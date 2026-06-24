@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { ref, computed, watch, nextTick } from 'vue'
-import { Promotion, Connection, Cpu, ArrowDown } from '@element-plus/icons-vue'
-import { useChatStore, REPLY_MODELS, DEFAULT_REPLY_MODEL } from '@/stores/chat'
+import { Promotion, Connection, Cpu, ArrowDown, Opportunity } from '@element-plus/icons-vue'
+import { ElMessage } from 'element-plus'
+import { useChatStore, REPLY_MODELS, REASONING_MODELS, DEFAULT_REPLY_MODEL } from '@/stores/chat'
 import { useIntentDisplayStore } from '@/stores/intent_display'
 
 const emit = defineEmits<{
@@ -43,9 +44,31 @@ function toggleSearch() {
   enableSearch.value = !enableSearch.value
 }
 
+function isReasoningModel(model: string): boolean {
+  return (REASONING_MODELS as readonly string[]).includes(model)
+}
+
+function toggleReasoning() {
+  // 推理模型思考恒开，禁止关闭：提示先切换为非推理模型
+  if (chatStore.showReasoning && isReasoningModel(currentModel.value)) {
+    ElMessage.warning('当前为推理模型，无法关闭思维链，请先切换为非推理模型')
+    return
+  }
+  chatStore.setShowReasoning(!chatStore.showReasoning)
+}
+
 function onSelectModel(model: string) {
   chatStore.setReplyModel(model)
+  if (isReasoningModel(model)) {
+    chatStore.setShowReasoning(true)
+    ElMessage.info(`${model} 为推理模型，已自动开启"显示思维链"`)
+  }
 }
+
+// 选中推理模型（含从 localStorage 恢复）时强制开启思维链，保持状态一致
+watch(currentModel, (m) => {
+  if (isReasoningModel(m) && !chatStore.showReasoning) chatStore.setShowReasoning(true)
+}, { immediate: true })
 
 function handleSend() {
   const text = inputText.value.trim()
@@ -106,6 +129,11 @@ function handleKeydown(e: KeyboardEvent) {
               </el-dropdown-menu>
             </template>
           </el-dropdown>
+
+          <button class="search-toggle" :class="{ active: chatStore.showReasoning }" @click="toggleReasoning">
+            <el-icon :size="14"><Opportunity /></el-icon>
+            <span>显示思维链</span>
+          </button>
         </div>
 
         <!-- 任务执行中：红色终止按钮 -->
