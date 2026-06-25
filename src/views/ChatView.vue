@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { ref } from 'vue'
 import { useChatStore } from '@/stores/chat'
 import { ElMessageBox, ElMessage } from 'element-plus'
 import { newSession } from '@/api/chat'
@@ -15,17 +15,8 @@ const chatWindowRef = ref<InstanceType<typeof ChatWindow>>()
 const currentChatId = ref('')
 const abortCtrl = ref<AbortController | null>(null)
 
-onMounted(async () => {
-  if (!store.currentSessionId) {
-    try {
-      const res = await newSession()
-      store.setSessionId(res.data.session_id)
-    } catch {
-      // handled
-    }
-  }
-})
-
+// 刷新后不再提前新建会话（避免每次刷新往库里塞空会话）。
+// 停在空欢迎态，首条消息发送时由 handleSend 懒创建会话。
 async function handleSend(text: string, enableSearch: boolean = false) {
   if (!store.currentSessionId) {
     const res = await newSession()

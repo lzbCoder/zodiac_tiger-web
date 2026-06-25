@@ -2,7 +2,7 @@
 import { computed, onMounted, ref, nextTick } from 'vue'
 import { useChatStore, type Session } from '@/stores/chat'
 import { getHistory, newSession } from '@/api/chat'
-import { Plus, ChatDotRound, MoreFilled, Top } from '@element-plus/icons-vue'
+import { Plus, ChatDotRound, MoreFilled, Top, Loading } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
 const store = useChatStore()
@@ -142,6 +142,9 @@ async function handlePin(s: Session) {
 }
 
 // ---- 更多操作 ----
+// 正在删除的会话 id（用于显示加载态并防止重复点击）
+const deletingId = ref('')
+
 async function handleDelete(s: Session) {
   try {
     await ElMessageBox.confirm(
@@ -149,9 +152,19 @@ async function handleDelete(s: Session) {
       '删除确认',
       { confirmButtonText: '确定删除', cancelButtonText: '取消', type: 'warning' },
     )
-    store.removeSession(s.id)
   } catch {
-    // 取消
+    return // 用户取消
+  }
+
+  if (deletingId.value) return // 已有删除进行中
+  deletingId.value = s.id
+  try {
+    await store.removeSession(s.id)
+    ElMessage.success('删除成功')
+  } catch {
+    // 失败提示已由请求拦截器统一弹出，这里仅保证列表不被错误清除
+  } finally {
+    deletingId.value = ''
   }
 }
 </script>
@@ -178,13 +191,15 @@ async function handleDelete(s: Session) {
             v-for="s in group.items"
             :key="s.id"
             class="session-item"
-            :class="{ active: s.id === store.currentSessionId, 'is-pinned': s.pinned }"
-            @click="selectSession(s)"
+            :class="{ active: s.id === store.currentSessionId, 'is-pinned': s.pinned, 'is-deleting': s.id === deletingId }"
+            @click="deletingId === s.id ? null : selectSession(s)"
           >
             <el-icon :size="14" class="session-icon"><ChatDotRound /></el-icon>
             <span class="session-title">{{ s.title }}</span>
+            <!-- 删除中：显示加载图标，删除完成前不消失 -->
+            <el-icon v-if="s.id === deletingId" :size="14" class="deleting-indicator is-loading"><Loading /></el-icon>
             <!-- 置顶会话：默认显示置顶图标，hover 时切换为三个点菜单 -->
-            <el-icon v-if="s.pinned" :size="14" class="pin-indicator"><Top /></el-icon>
+            <el-icon v-else-if="s.pinned" :size="14" class="pin-indicator"><Top /></el-icon>
             <el-dropdown
               trigger="click"
               placement="bottom-end"
@@ -383,6 +398,28 @@ async function handleDelete(s: Session) {
   height: 25px;
   flex-shrink: 0;
   color: var(--color-primary);
+}
+
+// ---- 删除中加载态 ----
+.deleting-indicator {
+  width: 25px;
+  height: 25px;
+  flex-shrink: 0;
+  color: var(--color-primary);
+}
+
+.deleting-indicator.is-loading {
+  animation: session-delete-spin 0.8s linear infinite;
+}
+
+@keyframes session-delete-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.session-item.is-deleting {
+  opacity: 0.6;
+  pointer-events: none; // 删除进行中禁止再次点击/选择
 }
 
 .session-item.is-pinned {

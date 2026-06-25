@@ -246,15 +246,14 @@ export const useChatStore = defineStore('chat', () => {
   }
 
   async function removeSession(id: string) {
-    try {
-      await deleteSessionApi(id)
-      sessions.value = sessions.value.filter((s) => s.id !== id)
-      if (currentSessionId.value === id) {
-        currentSessionId.value = ''
-        messages.value = []
-      }
-    } catch {
-      // silently fail
+    // 等待后端真正删除完成（失败时由拦截器提示并 reject，交给调用方处理）
+    await deleteSessionApi(id)
+    // 删除已确认成功，直接从本地列表移除该会话——确定性操作，
+    // 不依赖随后的列表重拉（避免缓存/时序导致已删会话被旧快照重新灌回）。
+    sessions.value = sessions.value.filter((s) => s.id !== id)
+    if (currentSessionId.value === id) {
+      currentSessionId.value = ''
+      messages.value = []
     }
   }
 
