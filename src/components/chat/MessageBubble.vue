@@ -426,8 +426,8 @@ watch(() => store.isStreaming, (val) => {
 
   &:hover {
     color: var(--neon-cyan);
-    border-color: rgba(0, 238, 255, 0.3);
-    background: rgba(0, 238, 255, 0.06);
+    border-color: rgba(var(--color-primary-rgb), 0.3);
+    background: rgba(var(--color-primary-rgb), 0.06);
   }
 }
 
@@ -435,7 +435,7 @@ watch(() => store.isStreaming, (val) => {
 .user-bubble {
   max-width: 100%;
   padding: 12px 16px;
-  font-size: 14px;
+  font-size: 16px;
   line-height: 1.7;
   color: var(--text-primary);
   word-break: break-word;
@@ -470,16 +470,16 @@ watch(() => store.isStreaming, (val) => {
   padding: 4px 0;
   cursor: pointer;
   user-select: none;
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.5);
+  font-size: 13px;
+  color: var(--text-tertiary);
   transition: color 0.2s;
 
   &:hover { color: var(--neon-cyan); }
 }
 
-.rr-ic { font-size: 13px; flex-shrink: 0; }
+.rr-ic { font-size: 14px; flex-shrink: 0; }
 .rr-title { font-weight: 500; }
-.rr-cost { font-size: 10px; color: rgba(255, 255, 255, 0.35); flex-shrink: 0; }
+.rr-cost { font-size: 11px; color: var(--text-placeholder); flex-shrink: 0; }
 .rr-fold { flex-shrink: 0; }
 .rr-spin { animation: rr-spin 1.4s linear infinite; }
 @keyframes rr-spin { from { transform: rotate(0); } to { transform: rotate(360deg); } }
@@ -487,11 +487,11 @@ watch(() => store.isStreaming, (val) => {
 .rr-text {
   margin-top: 4px;
   padding: 8px 10px;
-  background: rgba(0, 238, 255, 0.03);
+  background: rgba(var(--color-primary-rgb), 0.03);
   border-radius: 6px;
-  font-size: 12px;
+  font-size: 13px;
   line-height: 1.7;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--text-tertiary);
   white-space: pre-wrap;
   word-break: break-word;
   max-height: 320px;
@@ -507,7 +507,7 @@ watch(() => store.isStreaming, (val) => {
 // ---- 工具调用折叠栏 ----
 .tool-calls-section {
   margin: 8px 0;
-  border: 1px solid rgba(0, 238, 255, 0.12);
+  border: 1px solid rgba(var(--color-primary-rgb), 0.12);
   border-radius: 8px;
   overflow: hidden;
 }
@@ -518,22 +518,22 @@ watch(() => store.isStreaming, (val) => {
   gap: 6px;
   padding: 6px 12px;
   cursor: pointer;
-  font-size: 13px;
-  color: rgba(255, 255, 255, 0.55);
+  font-size: 14px;
+  color: var(--text-tertiary);
   user-select: none;
   transition: background 0.15s;
 
-  &:hover { background: rgba(0, 238, 255, 0.04); }
+  &:hover { background: rgba(var(--color-primary-rgb), 0.04); }
 }
 
 .tool-details {
-  border-top: 1px solid rgba(0, 238, 255, 0.08);
+  border-top: 1px solid rgba(var(--color-primary-rgb), 0.08);
 }
 
 .tool-item {
   padding: 8px 12px;
-  font-size: 12px;
-  border-bottom: 1px solid rgba(0, 238, 255, 0.04);
+  font-size: 13px;
+  border-bottom: 1px solid rgba(var(--color-primary-rgb), 0.04);
 
   &:last-child { border-bottom: none; }
 }
@@ -541,19 +541,19 @@ watch(() => store.isStreaming, (val) => {
 .tool-status { margin-right: 6px; }
 
 .tool-name {
-  color: rgba(255, 255, 255, 0.75);
+  color: var(--text-secondary);
   font-weight: 500;
 }
 
 .tool-cost {
-  color: rgba(255, 255, 255, 0.35);
-  font-size: 11px;
+  color: var(--text-placeholder);
+  font-size: 12px;
   margin-left: 8px;
 }
 
 .tool-args {
-  font-size: 11px;
-  color: rgba(255, 255, 255, 0.3);
+  font-size: 12px;
+  color: var(--text-placeholder);
   font-family: 'Consolas', monospace;
   margin-top: 2px;
   overflow: hidden;
@@ -563,9 +563,9 @@ watch(() => store.isStreaming, (val) => {
 }
 
 .markdown-body {
-  font-size: 14px;
+  font-size: 16px;
   line-height: 1.8;
-  color: rgba(255, 255, 255, 0.78);
+  color: var(--text-body);
   word-break: break-word;
 
   // 标题
@@ -579,7 +579,7 @@ watch(() => store.isStreaming, (val) => {
   }
 
   :deep(h1) { font-size: 20px; }
-  :deep(h2) { font-size: 18px; border-bottom: 1px solid rgba(0, 238, 255, 0.12); padding-bottom: 6px; }
+  :deep(h2) { font-size: 18px; border-bottom: 1px solid rgba(var(--color-primary-rgb), 0.12); padding-bottom: 6px; }
   :deep(h3) { font-size: 16px; }
 
   // 段落
@@ -597,10 +597,10 @@ watch(() => store.isStreaming, (val) => {
   :deep(blockquote) {
     margin: 10px 0;
     padding: 8px 14px;
-    border-left: 3px solid rgba(0, 238, 255, 0.3);
-    background: rgba(0, 238, 255, 0.04);
+    border-left: 3px solid rgba(var(--color-primary-rgb), 0.3);
+    background: rgba(var(--color-primary-rgb), 0.04);
     border-radius: 0 6px 6px 0;
-    color: rgba(255, 255, 255, 0.65);
+    color: var(--text-secondary);
     font-style: italic;
 
     p { margin: 0; }
@@ -608,8 +608,8 @@ watch(() => store.isStreaming, (val) => {
 
   // 代码块
   :deep(pre) {
-    background: rgba(0, 0, 0, 0.45);
-    border: 1px solid rgba(0, 238, 255, 0.18);
+    background: var(--bg-code);
+    border: 1px solid rgba(var(--color-primary-rgb), 0.18);
     border-radius: 8px;
     padding: 14px 16px;
     margin: 10px 0;
@@ -618,7 +618,7 @@ watch(() => store.isStreaming, (val) => {
 
   :deep(pre code) {
     font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-    font-size: 13px;
+    font-size: 14px;
     line-height: 1.6;
     color: var(--neon-cyan);
     background: transparent;
@@ -627,7 +627,7 @@ watch(() => store.isStreaming, (val) => {
 
   // 行内代码
   :deep(code:not(pre code)) {
-    background: rgba(0, 238, 255, 0.1);
+    background: rgba(var(--color-primary-rgb), 0.1);
     color: var(--neon-cyan);
     padding: 2px 6px;
     border-radius: 4px;
@@ -653,30 +653,30 @@ watch(() => store.isStreaming, (val) => {
     width: 100%;
     border-collapse: collapse;
     margin: 10px 0;
-    font-size: 13px;
+    font-size: 14px;
   }
 
   :deep(th), :deep(td) {
-    border: 1px solid rgba(0, 238, 255, 0.12);
+    border: 1px solid rgba(var(--color-primary-rgb), 0.12);
     padding: 8px 12px;
     text-align: left;
   }
 
   :deep(th) {
-    background: rgba(0, 238, 255, 0.08);
+    background: rgba(var(--color-primary-rgb), 0.08);
     color: var(--neon-cyan);
     font-weight: 600;
   }
 
   :deep(tr:hover td) {
-    background: rgba(0, 238, 255, 0.03);
+    background: rgba(var(--color-primary-rgb), 0.03);
   }
 
   // 链接
   :deep(a) {
     color: var(--neon-cyan);
     text-decoration: none;
-    border-bottom: 1px dotted rgba(0, 238, 255, 0.3);
+    border-bottom: 1px dotted rgba(var(--color-primary-rgb), 0.3);
 
     &:hover {
       border-bottom-style: solid;
@@ -686,7 +686,7 @@ watch(() => store.isStreaming, (val) => {
   // 分隔线
   :deep(hr) {
     border: none;
-    border-top: 1px solid rgba(0, 238, 255, 0.1);
+    border-top: 1px solid rgba(var(--color-primary-rgb), 0.1);
     margin: 16px 0;
   }
 
@@ -707,10 +707,10 @@ watch(() => store.isStreaming, (val) => {
   top: 8px;
   right: 8px;
   padding: 4px 10px;
-  font-size: 11px;
-  color: rgba(255, 255, 255, 0.5);
-  background: rgba(0, 0, 0, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 12px;
+  color: var(--text-tertiary);
+  background: var(--bg-code);
+  border: 1px solid var(--border-color);
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.2s;
@@ -718,8 +718,8 @@ watch(() => store.isStreaming, (val) => {
 
 .code-copy-btn:hover {
   color: var(--neon-cyan);
-  border-color: rgba(0, 238, 255, 0.3);
-  background: rgba(0, 0, 0, 0.7);
+  border-color: rgba(var(--color-primary-rgb), 0.3);
+  background: var(--bg-muted);
 }
 
 /* ---- 表格 → 图表增强 ----
@@ -727,7 +727,7 @@ watch(() => store.isStreaming, (val) => {
  */
 .data-table-wrap {
   margin: 12px 0;
-  border: 1px solid rgba(0, 238, 255, 0.15);
+  border: 1px solid rgba(var(--color-primary-rgb), 0.15);
   border-radius: 8px;
   overflow: hidden;
   animation: fadeIn 0.3s ease;
@@ -736,8 +736,8 @@ watch(() => store.isStreaming, (val) => {
 .dt-toggle-bar {
   display: flex;
   gap: 0;
-  background: rgba(0, 0, 0, 0.3);
-  border-bottom: 1px solid rgba(0, 238, 255, 0.1);
+  background: var(--bg-muted);
+  border-bottom: 1px solid rgba(var(--color-primary-rgb), 0.1);
 }
 
 .dt-btn {
@@ -745,20 +745,20 @@ watch(() => store.isStreaming, (val) => {
   padding: 6px 12px;
   border: none;
   background: transparent;
-  color: rgba(255, 255, 255, 0.5);
-  font-size: 13px;
+  color: var(--text-tertiary);
+  font-size: 14px;
   cursor: pointer;
   transition: all 0.15s;
 }
 
 .dt-btn:hover {
-  color: rgba(255, 255, 255, 0.8);
-  background: rgba(0, 238, 255, 0.05);
+  color: var(--text-secondary);
+  background: rgba(var(--color-primary-rgb), 0.05);
 }
 
 .dt-btn.active {
   color: var(--neon-cyan);
-  background: rgba(0, 238, 255, 0.08);
+  background: rgba(var(--color-primary-rgb), 0.08);
 }
 
 .dt-chart-area {

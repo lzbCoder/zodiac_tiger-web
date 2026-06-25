@@ -253,7 +253,7 @@ async function handleDelete(s: Session) {
 <style scoped lang="scss">
 .session-list {
   width: 260px;
-  background: var(--bg-sidebar);
+  background: var(--bg-chat-aside);
   backdrop-filter: blur(8px);
   border-right: 1px solid var(--border-color);
   display: flex;
@@ -275,19 +275,18 @@ async function handleDelete(s: Session) {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  background: rgba(0, 238, 255, 0.08);
-  border: 1px solid rgba(0, 238, 255, 0.25);
+  background: rgba(var(--color-primary-rgb), 0.08);
+  border: 1px solid rgba(var(--color-primary-rgb), 0.25);
   border-radius: 8px;
   color: var(--color-primary);
   font-size: 14px;
-  letter-spacing: 1px;
   cursor: pointer;
   transition: all 0.3s ease;
 
   &:hover {
-    background: rgba(0, 238, 255, 0.14);
+    background: rgba(var(--color-primary-rgb), 0.14);
     border-color: var(--color-primary);
-    box-shadow: 0 0 16px rgba(0, 238, 255, 0.2);
+    box-shadow: 0 0 16px rgba(var(--color-primary-rgb), 0.2);
   }
 }
 
@@ -313,7 +312,7 @@ async function handleDelete(s: Session) {
 }
 
 .group-label {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--text-secondary);
   padding: 12px 8px 6px;
   letter-spacing: 1px;
@@ -359,7 +358,7 @@ async function handleDelete(s: Session) {
 
 .session-title {
   flex: 1;
-  font-size: 13px;
+  font-size: 14px;
   color: var(--text-primary);
   white-space: nowrap;
   overflow: hidden;
@@ -374,7 +373,7 @@ async function handleDelete(s: Session) {
   justify-content: center;
   border: none;
   background: transparent;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--text-tertiary);
   cursor: pointer;
   opacity: 0.3;
   border-radius: 4px;
@@ -382,7 +381,7 @@ async function handleDelete(s: Session) {
 
   &:hover {
     color: var(--color-primary);
-    background: rgba(0, 238, 255, 0.12);
+    background: rgba(var(--color-primary-rgb), 0.12);
     opacity: 1;
   }
 }
@@ -443,6 +442,6 @@ async function handleDelete(s: Session) {
   text-align: center;
   padding: 48px 0;
   color: var(--text-secondary);
-  font-size: 13px;
+  font-size: 14px;
 }
 </style>

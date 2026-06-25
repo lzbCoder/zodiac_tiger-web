@@ -103,15 +103,15 @@ function handleDialogClose() {
   align-items: center;
   gap: 12px;
   padding: 16px;
-  border: 1px solid rgba(0, 238, 255, 0.12);
+  border: 1px solid rgba(var(--color-primary-rgb), 0.12);
   border-radius: 8px;
-  background: rgba(0, 0, 0, 0.2);
+  background: var(--bg-muted);
   transition: all 0.2s;
 }
 
 .capability-card:hover {
-  border-color: rgba(0, 238, 255, 0.3);
-  background: rgba(0, 238, 255, 0.04);
+  border-color: rgba(var(--color-primary-rgb), 0.3);
+  background: rgba(var(--color-primary-rgb), 0.04);
 }
 
 .card-icon {
@@ -122,7 +122,7 @@ function handleDialogClose() {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 238, 255, 0.06);
+  background: rgba(var(--color-primary-rgb), 0.06);
   border-radius: 10px;
 }
 
@@ -139,16 +139,16 @@ function handleDialogClose() {
 }
 
 .card-desc {
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.5);
+  font-size: 13px;
+  color: var(--text-tertiary);
   line-height: 1.5;
 }
 
 .card-btn {
   flex-shrink: 0;
   padding: 6px 14px;
-  font-size: 12px;
-  border: 1px solid rgba(0, 238, 255, 0.2);
+  font-size: 13px;
+  border: 1px solid rgba(var(--color-primary-rgb), 0.2);
   border-radius: 6px;
   background: transparent;
   color: var(--neon-cyan);
@@ -158,7 +158,7 @@ function handleDialogClose() {
 }
 
 .card-btn:hover {
-  background: rgba(0, 238, 255, 0.1);
+  background: rgba(var(--color-primary-rgb), 0.1);
   border-color: var(--neon-cyan);
 }
 
@@ -166,8 +166,8 @@ function handleDialogClose() {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.4);
+  font-size: 13px;
+  color: var(--text-placeholder);
   cursor: pointer;
 }
 </style>

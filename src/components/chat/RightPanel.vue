@@ -159,7 +159,7 @@ watch(
 .right-panel {
   display: flex;
   flex-direction: column;
-  background: var(--bg-sidebar);
+  background: var(--bg-chat-aside);
   backdrop-filter: blur(8px);
   border-left: 1px solid var(--border-color);
   flex-shrink: 0;
@@ -191,7 +191,7 @@ watch(
   transition: background 0.2s;
 
   &:hover {
-    background: rgba(0, 238, 255, 0.1);
+    background: rgba(var(--color-primary-rgb), 0.1);
   }
 }
 
@@ -215,7 +215,7 @@ watch(
   display: flex;
   flex-direction: column;
   align-items: center;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   color: var(--text-secondary);
   line-height: 1.3;
@@ -256,16 +256,14 @@ watch(
   align-items: center;
   justify-content: space-between;
   padding: 14px 16px;
-  border-bottom: 1px solid rgba(0, 238, 255, 0.1);
+  border-bottom: 1px solid rgba(var(--color-primary-rgb), 0.1);
   flex-shrink: 0;
 }
 
 .panel-title {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
-  color: var(--text-primary);
-  letter-spacing: 1px;
-}
+  color: var(--text-primary);}
 
 .collapse-icon {
   color: var(--text-secondary);
@@ -282,7 +280,7 @@ watch(
   display: flex;
   gap: 12px;
   padding: 10px 16px;
-  border-bottom: 1px solid rgba(0, 238, 255, 0.06);
+  border-bottom: 1px solid rgba(var(--color-primary-rgb), 0.06);
   flex-shrink: 0;
 }
 
@@ -292,31 +290,31 @@ watch(
   align-items: center;
   justify-content: space-between;
   padding: 8px 16px;
-  font-size: 11px;
+  font-size: 12px;
   color: var(--color-primary);
-  background: rgba(0, 238, 255, 0.06);
-  border-bottom: 1px solid rgba(0, 238, 255, 0.1);
+  background: rgba(var(--color-primary-rgb), 0.06);
+  border-bottom: 1px solid rgba(var(--color-primary-rgb), 0.1);
   flex-shrink: 0;
 }
 
 .back-latest-btn {
-  border: 1px solid rgba(0, 238, 255, 0.3);
+  border: 1px solid rgba(var(--color-primary-rgb), 0.3);
   background: transparent;
   color: var(--color-primary);
-  font-size: 11px;
+  font-size: 12px;
   padding: 3px 8px;
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.2s;
 
   &:hover {
-    background: rgba(0, 238, 255, 0.12);
+    background: rgba(var(--color-primary-rgb), 0.12);
     border-color: var(--color-primary);
   }
 }
 
 .stat {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 500;
 
   &.running { color: var(--color-primary); }
@@ -353,8 +351,8 @@ watch(
   }
 
   &.step-pending {
-    .step-dot { color: rgba(255, 255, 255, 0.35); }
-    .step-name { color: rgba(255, 255, 255, 0.5); }
+    .step-dot { color: var(--text-placeholder); }
+    .step-name { color: var(--text-tertiary); }
   }
 
   &.step-fail {
@@ -364,7 +362,7 @@ watch(
 
   &.step-terminated {
     .step-dot { color: #ff9500; }
-    .step-name { color: rgba(255, 255, 255, 0.38); text-decoration: line-through; }
+    .step-name { color: var(--text-placeholder); text-decoration: line-through; }
   }
 }
 
@@ -374,7 +372,7 @@ watch(
   top: 22px;
   width: 1px;
   height: calc(100% - 6px);
-  background: rgba(0, 238, 255, 0.12);
+  background: rgba(var(--color-primary-rgb), 0.12);
 }
 
 .step-dot {
@@ -401,17 +399,17 @@ watch(
 .step-name {
   font-size: 12px;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.75);
+  color: var(--text-secondary);
 }
 
 .step-cost {
-  font-size: 10px;
-  color: rgba(255, 255, 255, 0.35);
+  font-size: 11px;
+  color: var(--text-placeholder);
   margin-left: 6px;
 }
 
 .step-detail {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--text-secondary);
 
   em {
@@ -424,14 +422,14 @@ watch(
 .step-detail-fold { margin-top: 4px; }
 
 .detail-toggle {
-  font-size: 11px; color: rgba(255, 255, 255, 0.4);
+  font-size: 12px; color: var(--text-placeholder);
   cursor: pointer; display: flex; align-items: center; gap: 4px; padding: 2px 0;
   &:hover { color: var(--neon-cyan); }
 }
 
 .detail-content {
-  font-size: 11px; color: rgba(255, 255, 255, 0.5);
-  background: rgba(0, 238, 255, 0.03);
+  font-size: 12px; color: var(--text-tertiary);
+  background: rgba(var(--color-primary-rgb), 0.03);
   padding: 6px 8px; border-radius: 4px;
   margin-top: 2px; max-height: 120px; overflow-y: auto;
   white-space: pre-wrap; line-height: 1.5;
@@ -443,8 +441,8 @@ watch(
 }
 
 .tool-child-toggle {
-  font-size: 11px;
-  color: rgba(255, 255, 255, 0.4);
+  font-size: 12px;
+  color: var(--text-placeholder);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -455,12 +453,12 @@ watch(
 
 .tool-child-list {
   padding-left: 8px;
-  border-left: 1px solid rgba(0, 238, 255, 0.1);
+  border-left: 1px solid rgba(var(--color-primary-rgb), 0.1);
   margin: 2px 0;
 }
 
 .tool-child-item {
-  font-size: 11px;
+  font-size: 12px;
   padding: 2px 0;
   display: flex;
   flex-wrap: wrap;
@@ -469,9 +467,9 @@ watch(
 }
 
 .tci-status { flex-shrink: 0; }
-.tci-name { color: rgba(255, 255, 255, 0.6); }
+.tci-name { color: var(--text-secondary); }
 .tci-name.highlight { color: var(--color-primary); }
-.tci-cost { color: rgba(255, 255, 255, 0.3); font-size: 10px; margin-left: auto; }
+.tci-cost { color: var(--text-placeholder); font-size: 11px; margin-left: auto; }
 
 .tci-detail-fold {
   width: 100%;
@@ -484,14 +482,14 @@ watch(
 }
 
 .tool-round-toggle {
-  font-size: 11px; color: rgba(0, 238, 255, 0.55);
+  font-size: 12px; color: rgba(var(--color-primary-rgb), 0.55);
   cursor: pointer; display: flex; align-items: center; gap: 4px; padding: 2px 0;
   &:hover { color: var(--neon-cyan); }
 }
 
 .tool-round-list {
   padding-left: 12px;
-  border-left: 1px solid rgba(0, 238, 255, 0.15);
+  border-left: 1px solid rgba(var(--color-primary-rgb), 0.15);
   margin: 2px 0 4px 4px;
 }
 
@@ -506,7 +504,7 @@ watch(
   text-align: center;
 
   p {
-    font-size: 12px;
+    font-size: 13px;
     color: var(--text-secondary);
     margin: 4px 0;
   }
@@ -519,7 +517,7 @@ watch(
 }
 
 .empty-sub {
-  font-size: 11px !important;
+  font-size: 12px !important;
   opacity: 0.6;
 }
 </style>

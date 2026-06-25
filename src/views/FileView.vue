@@ -136,7 +136,7 @@ onMounted(() => {
         :data="files"
         v-loading="loading"
         style="width: 100%"
-        :header-cell-style="{ background: 'rgba(0,238,255,0.04)', color: 'var(--neon-cyan)' }"
+        :header-cell-style="{ background: 'var(--bg-table-header)', color: 'var(--table-header-text)' }"
         row-class-name="file-row"
       >
         <el-table-column label="文件名" min-width="200" show-overflow-tooltip>
@@ -208,15 +208,13 @@ onMounted(() => {
   width: 160px;
   flex-shrink: 0;
   padding: 24px 0;
-  border-right: 1px solid rgba(0, 238, 255, 0.08);
+  border-right: 1px solid rgba(var(--color-primary-rgb), 0.08);
   overflow-y: auto;
 }
 
 .sidebar-title {
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 2px;
-  margin-bottom: 12px;
+  font-size: 14px;
+  font-weight: 600;  margin-bottom: 12px;
   padding: 0 16px;
 }
 
@@ -225,22 +223,22 @@ onMounted(() => {
   align-items: center;
   gap: 8px;
   padding: 8px 16px;
-  font-size: 13px;
+  font-size: 14px;
   color: var(--text-secondary);
   cursor: pointer;
   transition: all 0.2s;
   border-right: 2px solid transparent;
 
   &:hover {
-    background: rgba(0, 238, 255, 0.04);
+    background: rgba(var(--color-primary-rgb), 0.04);
     color: var(--text-primary);
 
-    .type-icon { color: rgba(0, 238, 255, 0.7); }
+    .type-icon { color: rgba(var(--color-primary-rgb), 0.7); }
   }
 
   &.active {
     color: var(--neon-cyan);
-    background: rgba(0, 238, 255, 0.06);
+    background: rgba(var(--color-primary-rgb), 0.06);
     border-right-color: var(--neon-cyan);
 
     .type-icon { color: var(--neon-cyan); }
@@ -258,7 +256,7 @@ onMounted(() => {
 }
 
 .type-count {
-  font-size: 11px;
+  font-size: 12px;
   opacity: 0.6;
   min-width: 24px;
   text-align: right;
@@ -289,14 +287,14 @@ onMounted(() => {
 
 .cell-secondary {
   color: var(--text-secondary);
-  font-size: 13px;
+  font-size: 14px;
 }
 
 .cell-type {
-  font-size: 12px;
+  font-size: 13px;
   padding: 2px 8px;
   border-radius: 4px;
-  background: rgba(0, 238, 255, 0.08);
+  background: rgba(var(--color-primary-rgb), 0.08);
   color: var(--neon-cyan);
 }
 
@@ -323,21 +321,21 @@ onMounted(() => {
   transition: background 0.15s;
 }
 .file-row:hover > td {
-  background: rgba(0, 238, 255, 0.03) !important;
+  background: rgba(var(--color-primary-rgb), 0.03) !important;
 }
 
 .desc-tooltip.el-popper {
   max-width: 320px !important;
-  background: #1e2336 !important;
-  color: #e0e0e0 !important;
-  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  background: var(--bg-dialog) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--border-glow) !important;
   white-space: normal !important;
   word-break: break-word !important;
   line-height: 1.7 !important;
-  font-size: 13px !important;
+  font-size: 14px !important;
 }
 .desc-tooltip.el-popper .el-popper__arrow::before {
-  background: #1e2336 !important;
-  border-color: rgba(255, 255, 255, 0.12) !important;
+  background: var(--bg-dialog) !important;
+  border-color: var(--border-glow) !important;
 }
 </style>

@@ -90,7 +90,7 @@ const preview = computed(() => {
 
   &:hover {
     transform: translateY(-4px);
-    border-color: rgba(0, 238, 255, 0.3);
+    border-color: rgba(var(--color-primary-rgb), 0.3);
   }
 
   &.disabled {
@@ -116,7 +116,7 @@ const preview = computed(() => {
 }
 
 .card-category {
-  font-size: 11px;
+  font-size: 12px;
   padding: 2px 8px;
   border: 1px solid;
   border-radius: 4px;
@@ -124,7 +124,7 @@ const preview = computed(() => {
 }
 
 .card-preview {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--text-secondary);
   line-height: 1.6;
   margin-bottom: 12px;
@@ -150,17 +150,17 @@ const preview = computed(() => {
 <style lang="scss">
 .desc-tooltip.el-popper {
   max-width: 320px !important;
-  background: #1e2336 !important;
-  color: #e0e0e0 !important;
-  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  background: var(--bg-dialog) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--border-glow) !important;
   white-space: normal !important;
   word-break: break-word !important;
   line-height: 1.7 !important;
-  font-size: 13px !important;
+  font-size: 14px !important;
 
   .el-popper__arrow::before {
-    background: #1e2336 !important;
-    border-color: rgba(255, 255, 255, 0.12) !important;
+    background: var(--bg-dialog) !important;
+    border-color: var(--border-glow) !important;
   }
 }
 </style>

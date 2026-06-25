@@ -74,10 +74,10 @@ function handleToggle() {
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  border: 1px solid rgba(0, 238, 255, 0.2);
-  background: rgba(0, 0, 0, 0.7);
+  border: 1px solid rgba(var(--color-primary-rgb), 0.2);
+  background: var(--bg-dialog);
   color: var(--neon-cyan);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   cursor: pointer;
   backdrop-filter: blur(8px);
@@ -87,7 +87,7 @@ function handleToggle() {
 
 .help-trigger:hover {
   border-color: var(--neon-cyan);
-  background: rgba(0, 238, 255, 0.1);
+  background: rgba(var(--color-primary-rgb), 0.1);
   transform: scale(1.05);
 }
 
@@ -95,9 +95,9 @@ function handleToggle() {
   width: 360px;
   max-height: 480px;
   overflow-y: auto;
-  background: rgba(10, 10, 30, 0.95);
+  background: var(--bg-dialog);
   backdrop-filter: blur(12px);
-  border: 1px solid rgba(0, 238, 255, 0.15);
+  border: 1px solid rgba(var(--color-primary-rgb), 0.15);
   border-radius: 12px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
 }
@@ -107,7 +107,7 @@ function handleToggle() {
   align-items: center;
   justify-content: space-between;
   padding: 14px 16px;
-  border-bottom: 1px solid rgba(0, 238, 255, 0.08);
+  border-bottom: 1px solid rgba(var(--color-primary-rgb), 0.08);
   font-size: 14px;
   font-weight: 600;
   color: var(--text-primary);
@@ -116,7 +116,7 @@ function handleToggle() {
 .close-btn {
   background: none;
   border: none;
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--text-placeholder);
   font-size: 16px;
   cursor: pointer;
   padding: 2px 6px;
@@ -124,8 +124,8 @@ function handleToggle() {
 }
 
 .close-btn:hover {
-  color: rgba(255, 255, 255, 0.8);
-  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-secondary);
+  background: var(--bg-muted);
 }
 
 .help-body {
@@ -140,12 +140,12 @@ function handleToggle() {
   gap: 10px;
   padding: 12px;
   border-radius: 8px;
-  border: 1px solid rgba(0, 238, 255, 0.08);
+  border: 1px solid rgba(var(--color-primary-rgb), 0.08);
   transition: border-color 0.15s;
 }
 
 .help-item:hover {
-  border-color: rgba(0, 238, 255, 0.2);
+  border-color: rgba(var(--color-primary-rgb), 0.2);
 }
 
 .help-item-icon {
@@ -164,38 +164,38 @@ function handleToggle() {
 }
 
 .help-item-title {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   color: var(--text-primary);
   margin-bottom: 4px;
 }
 
 .help-item-desc {
-  font-size: 11px;
-  color: rgba(255, 255, 255, 0.5);
+  font-size: 12px;
+  color: var(--text-tertiary);
   line-height: 1.5;
   margin-bottom: 6px;
 }
 
 .help-item-demo {
-  font-size: 11px;
-  color: rgba(255, 255, 255, 0.35);
+  font-size: 12px;
+  color: var(--text-placeholder);
   line-height: 1.4;
   margin-bottom: 8px;
 }
 
 .demo-label {
-  color: rgba(255, 255, 255, 0.3);
+  color: var(--text-placeholder);
 }
 
 .demo-text {
-  color: rgba(255, 255, 255, 0.45);
+  color: var(--text-tertiary);
 }
 
 .demo-btn {
   padding: 4px 12px;
-  font-size: 11px;
-  border: 1px solid rgba(0, 238, 255, 0.15);
+  font-size: 12px;
+  border: 1px solid rgba(var(--color-primary-rgb), 0.15);
   border-radius: 4px;
   background: transparent;
   color: var(--neon-cyan);
@@ -204,7 +204,7 @@ function handleToggle() {
 }
 
 .demo-btn:hover {
-  background: rgba(0, 238, 255, 0.08);
+  background: rgba(var(--color-primary-rgb), 0.08);
   border-color: var(--neon-cyan);
 }
 

@@ -119,7 +119,7 @@ watch(
 
   // 自定义滚动条 — 紧贴右侧 Agent 面板
   scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.12) transparent;
+  scrollbar-color: var(--scrollbar-thumb) transparent;
 
   &::-webkit-scrollbar {
     width: 4px;
@@ -131,11 +131,11 @@ watch(
   }
 
   &::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.12);
+    background: var(--scrollbar-thumb);
     border-radius: 2px;
 
     &:hover {
-      background: rgba(0, 238, 255, 0.35);
+      background: rgba(var(--color-primary-rgb), 0.35);
     }
   }
 }
@@ -194,8 +194,8 @@ watch(
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: rgba(0, 238, 255, 0.15);
-  border: 1px solid rgba(0, 238, 255, 0.25);
+  background: rgba(var(--color-primary-rgb), 0.15);
+  border: 1px solid rgba(var(--color-primary-rgb), 0.25);
   color: var(--neon-cyan);
   display: flex;
   align-items: center;
@@ -205,7 +205,7 @@ watch(
   transition: background 0.2s, transform 0.2s;
 
   &:hover {
-    background: rgba(0, 238, 255, 0.25);
+    background: rgba(var(--color-primary-rgb), 0.25);
     transform: translateX(-50%) scale(1.1);
   }
 
@@ -230,8 +230,8 @@ watch(
 }
 
 @keyframes msg-flash {
-  0%   { background: rgba(0, 238, 255, 0.12); }
-  50%  { background: rgba(0, 238, 255, 0.05); }
+  0%   { background: rgba(var(--color-primary-rgb), 0.12); }
+  50%  { background: rgba(var(--color-primary-rgb), 0.05); }
   100% { background: transparent; }
 }
 </style>

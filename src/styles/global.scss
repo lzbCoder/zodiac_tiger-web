@@ -16,6 +16,9 @@ html, body {
   color: var(--text-primary);
   overflow: hidden;
   transition: background 0.4s ease, color 0.4s ease;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 // ============ 滚动条 ============
@@ -85,8 +88,8 @@ html, body {
   --el-table-header-bg-color: var(--bg-table-header);
   --el-table-row-hover-bg-color: var(--bg-table-row-hover);
   --el-table-border-color: var(--border-table);
-  --el-table-text-color: var(--text-primary);
-  --el-table-header-text-color: var(--text-highlight);
+  --el-table-text-color: var(--table-text);
+  --el-table-header-text-color: var(--table-header-text);
 }
 
 .el-table {
@@ -97,16 +100,20 @@ html, body {
 
   th.el-table__cell {
     background-color: var(--bg-table-header) !important;
-    color: var(--text-highlight) !important;
+    color: var(--table-header-text) !important;
     border-bottom: 2px solid var(--border-glow) !important;
     font-weight: 600;
-    letter-spacing: 1px;
   }
 
   td.el-table__cell {
     background-color: transparent !important;
     border-bottom-color: var(--border-table) !important;
-    color: var(--text-primary) !important;
+    color: var(--table-text) !important;
+  }
+
+  // 隔行斑马纹
+  .el-table__row--striped td.el-table__cell {
+    background-color: var(--bg-table-row-stripe) !important;
   }
 
   tr:hover > td.el-table__cell {
@@ -137,9 +144,7 @@ html, body {
 
   .el-dialog__title {
     color: var(--text-highlight) !important;
-    font-weight: 600;
-    letter-spacing: 1px;
-  }
+    font-weight: 600;  }
 
   .el-dialog__body {
     color: var(--text-primary);
@@ -230,8 +235,11 @@ html, body {
 
 .el-button--default {
   --el-button-bg-color: transparent;
-  --el-button-border-color: var(--border-glow);
-  --el-button-text-color: var(--text-primary);
+  --el-button-border-color: var(--border-color);
+  --el-button-text-color: var(--text-secondary);
+  --el-button-hover-bg-color: var(--bg-muted);
+  --el-button-hover-border-color: var(--border-glow);
+  --el-button-hover-text-color: var(--text-primary);
 }
 
 // --- 开关 ---
@@ -247,27 +255,27 @@ html, body {
   color: var(--text-highlight) !important;
 
   &.el-tag--success {
-    background-color: rgba(0, 255, 136, 0.1) !important;
+    background-color: rgba(var(--color-success-rgb), 0.1) !important;
     color: var(--color-success) !important;
-    border-color: rgba(0, 255, 136, 0.25) !important;
+    border-color: rgba(var(--color-success-rgb), 0.25) !important;
   }
 
   &.el-tag--danger {
-    background-color: rgba(255, 68, 68, 0.1) !important;
+    background-color: rgba(var(--color-danger-rgb), 0.1) !important;
     color: var(--color-danger) !important;
-    border-color: rgba(255, 68, 68, 0.25) !important;
+    border-color: rgba(var(--color-danger-rgb), 0.25) !important;
   }
 
   &.el-tag--warning {
-    background-color: rgba(255, 170, 0, 0.1) !important;
+    background-color: rgba(var(--color-warning-rgb), 0.1) !important;
     color: var(--color-warning) !important;
-    border-color: rgba(255, 170, 0, 0.25) !important;
+    border-color: rgba(var(--color-warning-rgb), 0.25) !important;
   }
 
   &.el-tag--info {
-    background-color: rgba(255, 255, 255, 0.06) !important;
-    color: var(--text-secondary) !important;
-    border-color: rgba(255, 255, 255, 0.1) !important;
+    background-color: var(--bg-muted) !important;
+    color: var(--text-tertiary) !important;
+    border-color: var(--border-color) !important;
   }
 }
 

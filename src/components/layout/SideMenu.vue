@@ -67,12 +67,12 @@ function navigate(path: string) {
   align-items: center;
   padding: 20px 8px 16px;
   cursor: pointer;
-  border-bottom: 1px solid rgba(0, 238, 255, 0.1);
+  border-bottom: 1px solid var(--border-color);
   transition: opacity 0.3s;
 
   &:hover {
     .brand-icon {
-      filter: drop-shadow(0 0 12px rgba(0, 238, 255, 0.5));
+      filter: drop-shadow(0 0 12px var(--color-primary-glow));
     }
   }
 }
@@ -89,11 +89,11 @@ function navigate(path: string) {
   font-weight: 700;
   color: var(--color-primary);
   letter-spacing: 3px;
-  text-shadow: 0 0 10px rgba(0, 238, 255, 0.3);
+  text-shadow: 0 0 10px var(--color-primary-glow);
 }
 
 .brand-sub {
-  font-size: 10px;
+  font-size: 11px;
   color: var(--text-secondary);
   margin-top: 4px;
   letter-spacing: 1px;
@@ -149,7 +149,7 @@ function navigate(path: string) {
 }
 
 .menu-label {
-  font-size: 11px;
+  font-size: 13px;
   white-space: nowrap;
 }
 </style>

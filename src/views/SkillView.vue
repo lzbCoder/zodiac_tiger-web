@@ -406,9 +406,7 @@ onMounted(fetchList)
   justify-content: space-between;
 
   h2 {
-    font-size: 20px;
-    letter-spacing: 2px;
-  }
+    font-size: 20px;  }
 }
 
 .stats-row {
@@ -431,7 +429,7 @@ onMounted(fetchList)
 }
 
 .stat-label {
-  font-size: 13px;
+  font-size: 14px;
   color: var(--text-secondary);
   margin-top: 4px;
 }
@@ -453,8 +451,8 @@ onMounted(fetchList)
 
   &:hover {
     transform: translateY(-4px);
-    border-color: rgba(0, 238, 255, 0.4);
-    box-shadow: 0 8px 24px rgba(0, 238, 255, 0.12);
+    border-color: rgba(var(--color-primary-rgb), 0.4);
+    box-shadow: 0 8px 24px rgba(var(--color-primary-rgb), 0.12);
   }
 }
 
@@ -479,13 +477,13 @@ onMounted(fetchList)
 
 
 .card-key {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--text-secondary);
   font-family: 'Courier New', monospace;
 }
 
 .card-desc {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--text-secondary);
   line-height: 1.6;
   margin: 0;
@@ -513,7 +511,7 @@ onMounted(fetchList)
 .upload-zone {
   width: 100%;
   min-height: 120px;
-  border: 1.5px dashed rgba(255, 255, 255, 0.2);
+  border: 1.5px dashed var(--border-color);
   border-radius: 8px;
   display: flex;
   flex-direction: column;
@@ -527,46 +525,46 @@ onMounted(fetchList)
   position: relative;
 
   &:hover:not(.upload-zone--filled) {
-    border-color: rgba(0, 200, 255, 0.5);
-    background: rgba(0, 200, 255, 0.04);
+    border-color: rgba(var(--color-primary-rgb), 0.5);
+    background: rgba(var(--color-primary-rgb), 0.04);
   }
 
   &.upload-zone--dragging {
-    border-color: #00c8ff;
-    background: rgba(0, 200, 255, 0.08);
+    border-color: var(--color-primary);
+    background: rgba(var(--color-primary-rgb), 0.08);
   }
 
   &.upload-zone--filled {
     cursor: default;
     border-style: solid;
-    border-color: rgba(0, 200, 255, 0.3);
-    background: rgba(0, 200, 255, 0.04);
+    border-color: rgba(var(--color-primary-rgb), 0.3);
+    background: rgba(var(--color-primary-rgb), 0.04);
   }
 }
 
 .zone-icon {
   font-size: 36px;
-  color: rgba(255, 255, 255, 0.3);
+  color: var(--text-placeholder);
 
   &.zone-icon--file {
-    color: #00c8ff;
+    color: var(--color-primary);
     font-size: 32px;
   }
 }
 
 .zone-text {
-  font-size: 13px;
+  font-size: 14px;
   color: var(--text-secondary, #aaa);
 
   em {
     font-style: normal;
-    color: #00c8ff;
+    color: var(--color-primary);
   }
 }
 
 .zone-tip {
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.3);
+  font-size: 13px;
+  color: var(--text-placeholder);
 }
 
 .zone-filename {
@@ -587,16 +585,16 @@ onMounted(fetchList)
 
 .skill-key-readonly {
   font-family: 'Courier New', monospace;
-  font-size: 13px;
+  font-size: 14px;
   color: var(--text-secondary, #888);
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--bg-muted);
   padding: 6px 10px;
   border-radius: 4px;
   display: block;
 }
 
 .bind-desc {
-  font-size: 13px;
+  font-size: 14px;
   color: var(--text-secondary, #aaa);
   margin-bottom: 16px;
 }
@@ -611,7 +609,7 @@ onMounted(fetchList)
 .agent-item {
   padding: 10px 14px;
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--bg-muted);
 }
 </style>
 
@@ -619,17 +617,17 @@ onMounted(fetchList)
 /* 描述悬浮提示 - 全局样式，穿透 teleport */
 .desc-tooltip.el-popper {
   max-width: 320px !important;
-  background: #1e2336 !important;
-  color: #e0e0e0 !important;
-  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  background: var(--bg-dialog) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--border-glow) !important;
   white-space: normal !important;
   word-break: break-word !important;
   line-height: 1.7 !important;
-  font-size: 13px !important;
+  font-size: 14px !important;
 
   .el-popper__arrow::before {
-    background: #1e2336 !important;
-    border-color: rgba(255, 255, 255, 0.12) !important;
+    background: var(--bg-dialog) !important;
+    border-color: var(--border-glow) !important;
   }
 }
 </style>

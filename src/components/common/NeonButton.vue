@@ -22,40 +22,38 @@ defineEmits(['click'])
   padding: 10px 24px;
   border: 1px solid var(--neon-cyan);
   border-radius: 8px;
-  background: rgba(0, 238, 255, 0.05);
+  background: rgba(var(--color-primary-rgb), 0.05);
   color: var(--neon-cyan);
   font-size: 14px;
   cursor: pointer;
-  transition: all 0.3s ease;
-  letter-spacing: 1px;
-  position: relative;
+  transition: all 0.3s ease;  position: relative;
   overflow: hidden;
 
   &:hover {
-    background: rgba(0, 238, 255, 0.15);
-    box-shadow: 0 0 20px rgba(0, 238, 255, 0.3);
+    background: rgba(var(--color-primary-rgb), 0.15);
+    box-shadow: var(--neon-shadow) rgba(var(--color-primary-rgb), 0.3);
     transform: scale(1.02);
   }
 
   &.purple {
     border-color: var(--neon-purple);
     color: var(--neon-purple);
-    background: rgba(123, 97, 255, 0.05);
+    background: rgba(var(--color-purple-rgb), 0.05);
 
     &:hover {
-      background: rgba(123, 97, 255, 0.15);
-      box-shadow: 0 0 20px rgba(123, 97, 255, 0.3);
+      background: rgba(var(--color-purple-rgb), 0.15);
+      box-shadow: var(--neon-shadow) rgba(var(--color-purple-rgb), 0.3);
     }
   }
 
   &.pink {
     border-color: var(--neon-pink);
     color: var(--neon-pink);
-    background: rgba(255, 68, 153, 0.05);
+    background: rgba(var(--color-pink-rgb), 0.05);
 
     &:hover {
-      background: rgba(255, 68, 153, 0.15);
-      box-shadow: 0 0 20px rgba(255, 68, 153, 0.3);
+      background: rgba(var(--color-pink-rgb), 0.15);
+      box-shadow: var(--neon-shadow) rgba(var(--color-pink-rgb), 0.3);
     }
   }
 

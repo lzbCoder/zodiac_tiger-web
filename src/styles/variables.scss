@@ -20,28 +20,46 @@ $glass-border: rgba(0, 238, 255, 0.15);
   --color-primary-rgb: 0, 238, 255;
   --color-primary-glow: rgba(0, 238, 255, 0.5);
   --color-purple: #7B61FF;
+  --color-purple-rgb: 123, 97, 255;
   --color-pink: #FF4499;
+  --color-pink-rgb: 255, 68, 153;
   --color-success: #00ff88;
+  --color-success-rgb: 0, 255, 136;
   --color-danger: #ff4444;
+  --color-danger-rgb: 255, 68, 68;
   --color-warning: #ffaa00;
+  --color-warning-rgb: 255, 170, 0;
+  --color-info: #3b82f6;
+  --color-info-rgb: 59, 130, 246;
 
   // 背景
   --bg-body-start: #090818;
   --bg-body-end: #121025;
+  --bg-topbar: rgba(9, 8, 24, 0.85);
   --bg-card: rgba(18, 16, 37, 0.7);
   --bg-card-hover: rgba(0, 238, 255, 0.05);
   --bg-sidebar: rgba(10, 10, 26, 0.9);
+  --bg-chat-aside: rgba(10, 10, 26, 0.9);   // 会话栏 / Agent 面板（深色同侧栏，保持不变）
+  --bg-muted: rgba(255, 255, 255, 0.04);
   --bg-input: rgba(255, 255, 255, 0.05);
   --bg-table-header: rgba(0, 238, 255, 0.1);
   --bg-table-row-hover: rgba(0, 238, 255, 0.05);
+  --bg-table-row-stripe: rgba(255, 255, 255, 0.02);
+  --bg-code: rgba(0, 0, 0, 0.45);
   --bg-dialog: rgba(18, 18, 36, 0.95);
   --bg-dialog-overlay: rgba(0, 0, 0, 0.6);
 
   // 文字
   --text-primary: #ffffff;
   --text-secondary: rgba(255, 255, 255, 0.6);
+  --text-tertiary: rgba(255, 255, 255, 0.45);
+  --text-placeholder: rgba(255, 255, 255, 0.35);
+  --text-body: rgba(255, 255, 255, 0.78);   // 正文阅读文本（聊天回复正文）
   --text-highlight: #00EEFF;
   --text-inverse: #1e293b;
+  // 表格文字（深色保持原青色表头 / 白色正文）
+  --table-header-text: #00EEFF;
+  --table-text: #ffffff;
 
   // 边框
   --border-color: rgba(0, 238, 255, 0.15);
@@ -122,61 +140,119 @@ $glass-border: rgba(0, 238, 255, 0.15);
   --color-primary-rgb: 14, 165, 233;
   --color-primary-glow: rgba(14, 165, 233, 0.3);
   --color-purple: #6366f1;
+  --color-purple-rgb: 99, 102, 241;
   --color-pink: #ec4899;
+  --color-pink-rgb: 236, 72, 153;
   --color-success: #10b981;
+  --color-success-rgb: 16, 185, 129;
   --color-danger: #ef4444;
+  --color-danger-rgb: 239, 68, 68;
   --color-warning: #f59e0b;
+  --color-warning-rgb: 245, 158, 11;
+  --color-info: #3b82f6;
+  --color-info-rgb: 59, 130, 246;
 
-  // 背景
-  --bg-body-start: #f8fafc;
+  // 背景（纯白阅读面 + 浅灰侧栏分层，参考 ChatGPT / DeepSeek）
+  --bg-body-start: #ffffff;       // 主阅读画布纯白，保证黑字最清晰；分隔靠灰侧栏
   --bg-body-end: #ffffff;
-  --bg-card: #ffffff;
-  --bg-card-hover: rgba(14, 165, 233, 0.04);
-  --bg-sidebar: #ffffff;
-  --bg-input: #f8fafc;
-  --bg-table-header: rgba(14, 165, 233, 0.08);
-  --bg-table-row-hover: rgba(14, 165, 233, 0.04);
+  --bg-topbar: #ffffff;
+  --bg-card: #ffffff;             // 内容卡片纯白，在柔和画布上自然凸显
+  --bg-card-hover: #f7f7f8;
+  --bg-sidebar: #f1f1f2;          // 左侧功能菜单浅灰，与右侧白色内容区分
+  --bg-chat-aside: #fafafa;       // 会话栏 / Agent 面板（接近纯白，仅留极浅分隔）
+  --bg-muted: #f4f4f5;            // 输入框只读 / 次要背景
+  --bg-input: #ffffff;
+  --bg-table-header: #f4f4f5;
+  --bg-table-row-hover: #f4f4f5;
+  --bg-table-row-stripe: #fafafa;
+  --bg-code: #f4f4f5;
   --bg-dialog: #ffffff;
-  --bg-dialog-overlay: rgba(0, 0, 0, 0.3);
+  --bg-dialog-overlay: rgba(17, 24, 39, 0.25);
 
-  // 文字
-  --text-primary: #1e293b;
-  --text-secondary: #64748b;
+  // 文字（近黑正文，参考 ChatGPT #0d0d0d / DeepSeek #1a1a1a；不用纯黑避免发飘）
+  --text-primary: #0d0d0d;        // 主标题、卡片标题
+  --text-secondary: #1f1f1f;      // 表单 label、菜单、表格正文
+  --text-tertiary: #4a4a4a;       // 辅助说明、备注
+  --text-placeholder: #7a7a7a;    // 占位、禁用
+  --text-body: #1a1a1a;           // 正文阅读文本（聊天回复正文）
   --text-highlight: #0ea5e9;
   --text-inverse: #ffffff;
+  // 表格文字（浅色高对比深字）
+  --table-header-text: #0d0d0d;
+  --table-text: #1f1f1f;
 
-  // 边框
-  --border-color: rgba(14, 165, 233, 0.12);
-  --border-glow: rgba(14, 165, 233, 0.25);
-  --border-table: rgba(14, 165, 233, 0.15);
+  // 边框（中性灰，不带蓝调）
+  --border-color: #e5e7eb;
+  --border-glow: #e5e7eb;
+  --border-table: #e5e7eb;
 
-  // 玻璃拟态（浅色模式降低透明度）
-  --glass-bg: rgba(255, 255, 255, 0.85);
-  --glass-border: rgba(14, 165, 233, 0.1);
+  // 玻璃拟态（浅色模式纯白卡片 + 柔和阴影）
+  --glass-bg: #ffffff;
+  --glass-border: #e5e7eb;
   --glass-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
 
-  // 滚动条
-  --scrollbar-thumb: rgba(14, 165, 233, 0.2);
-  --scrollbar-thumb-hover: rgba(14, 165, 233, 0.35);
+  // 滚动条（细浅灰）
+  --scrollbar-thumb: #d1d5db;
+  --scrollbar-thumb-hover: #9ca3af;
 
   // 粒子
   --particle-color: rgba(14, 165, 233, 0.2);
   --particle-line: rgba(99, 102, 241, 0.04);
 
   // 菜单
-  --menu-active-bg: rgba(14, 165, 233, 0.08);
-  --menu-hover-bg: rgba(14, 165, 233, 0.04);
-  --menu-icon-color: #64748b;
+  --menu-active-bg: #e6f5ff;      // 文档：选中浅蓝
+  --menu-hover-bg: #e8e8ea;       // hover 比侧栏底色更深一档，确保可见
+  --menu-icon-color: #595959;
 
   // 输入框
-  --input-bg: #f8fafc;
-  --input-border: rgba(14, 165, 233, 0.15);
-  --input-focus-border: rgba(14, 165, 233, 0.4);
+  --input-bg: #ffffff;
+  --input-border: #e5e7eb;
+  --input-focus-border: rgba(14, 165, 233, 0.6);
   --input-focus-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
 
   // 无霓虹（浅色模式用柔和阴影）
   --neon-shadow: 0 2px 8px;
   --neon-shadow-lg: 0 4px 16px;
+
+  // ---- Element Plus 浅色映射 ----
+  --el-color-primary: #0ea5e9;
+  --el-color-primary-light-3: #4cbef0;
+  --el-color-primary-light-5: #87d4f5;
+  --el-color-primary-light-7: #b9e6f9;
+  --el-color-primary-light-8: #d0eefb;
+  --el-color-primary-light-9: #e8f7fd;
+  --el-color-primary-dark-2: #0b84ba;
+  --el-color-success: #10b981;
+  --el-color-warning: #f59e0b;
+  --el-color-danger: #ef4444;
+  --el-color-error: #ef4444;
+  --el-color-info: #6b7280;
+  --el-bg-color: #ffffff;
+  --el-bg-color-page: #f7fafc;
+  --el-bg-color-overlay: #ffffff;
+  --el-text-color-primary: #0d0d0d;
+  --el-text-color-regular: #1f1f1f;
+  --el-text-color-secondary: #4a4a4a;
+  --el-text-color-placeholder: #7a7a7a;
+  --el-text-color-disabled: #adadad;
+  --el-border-color: #e5e7eb;
+  --el-border-color-light: #e5e7eb;
+  --el-border-color-lighter: #eceef1;
+  --el-border-color-extra-light: #f2f4f7;
+  --el-border-color-dark: #d1d5db;
+  --el-border-color-darker: #cdd0d6;
+  --el-fill-color: #f2f4f7;
+  --el-fill-color-light: #f7fafc;
+  --el-fill-color-lighter: #fafbfc;
+  --el-fill-color-extra-light: #fcfcfd;
+  --el-fill-color-dark: #ebedf0;
+  --el-fill-color-darker: #e5e7eb;
+  --el-fill-color-blank: #ffffff;
+  --el-mask-color: rgba(255, 255, 255, 0.7);
+  --el-box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  --el-box-shadow-light: 0 2px 12px rgba(0, 0, 0, 0.06);
+  --el-box-shadow-lighter: 0 2px 12px rgba(0, 0, 0, 0.04);
+  --el-box-shadow-dark: 0 4px 20px rgba(0, 0, 0, 0.12);
 }
 
 // -------- 兼容旧变量名（指向新语义变量）--------

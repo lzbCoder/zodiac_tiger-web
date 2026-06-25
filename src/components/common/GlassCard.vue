@@ -13,17 +13,17 @@ defineProps<{ title?: string }>()
 
 <style scoped lang="scss">
 .glass-card {
-  background: rgba(18, 16, 37, 0.7);
+  background: var(--glass-bg);
   backdrop-filter: blur(12px);
-  border: 1px solid rgba(0, 238, 255, 0.12);
+  border: 1px solid var(--glass-border);
   border-radius: 12px;
-  box-shadow: 0 0 20px rgba(0, 238, 255, 0.05);
+  box-shadow: var(--glass-shadow);
   padding: 20px;
   transition: all 0.3s ease;
 
   &:hover {
-    border-color: rgba(0, 238, 255, 0.25);
-    box-shadow: 0 0 30px rgba(0, 238, 255, 0.1);
+    border-color: rgba(var(--color-primary-rgb), 0.25);
+    box-shadow: var(--neon-shadow-lg) rgba(var(--color-primary-rgb), 0.1);
   }
 }
 
@@ -31,7 +31,5 @@ defineProps<{ title?: string }>()
   font-size: 16px;
   font-weight: 600;
   color: var(--neon-cyan);
-  margin-bottom: 16px;
-  letter-spacing: 2px;
-}
+  margin-bottom: 16px;}
 </style>

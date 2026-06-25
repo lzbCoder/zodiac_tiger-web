@@ -140,7 +140,7 @@ function openDetail() {
 
 .alert-subtext {
   margin-top: 4px;
-  font-size: 12px;
+  font-size: 13px;
   color: #999999;
   word-break: break-all;
 }
@@ -165,7 +165,7 @@ function openDetail() {
 .alert-detail-btn {
   flex-shrink: 0;
   align-self: flex-end;
-  font-size: 13px;
+  font-size: 14px;
   color: #ff4d4f;
   cursor: pointer;
   text-decoration: underline;
@@ -179,7 +179,7 @@ function openDetail() {
   label {
     display: block;
     margin-bottom: 6px;
-    font-size: 13px;
+    font-size: 14px;
     color: var(--text-secondary, rgba(255, 255, 255, 0.6));
   }
 }
@@ -192,7 +192,7 @@ function openDetail() {
 .error-detail-dialog .err-stack .el-textarea__inner {
   color: #ff4d4f !important;
   font-family: 'Consolas', 'Monaco', monospace;
-  font-size: 12px;
+  font-size: 13px;
   line-height: 1.6;
 }
 </style>

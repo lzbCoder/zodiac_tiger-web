@@ -168,7 +168,7 @@ onMounted(async () => {
 }
 
 .topbar-key {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--text-secondary);
   font-family: 'Courier New', monospace;
   white-space: nowrap;
@@ -181,10 +181,10 @@ onMounted(async () => {
   align-items: center;
   gap: 8px;
   padding: 10px 16px;
-  background: rgba(0, 212, 255, 0.06);
-  border: 1px solid rgba(0, 212, 255, 0.2);
+  background: rgba(var(--color-primary-rgb), 0.06);
+  border: 1px solid rgba(var(--color-primary-rgb), 0.2);
   border-radius: 8px;
-  font-size: 13px;
+  font-size: 14px;
   color: var(--text-secondary);
   flex-shrink: 0;
 
@@ -220,14 +220,14 @@ onMounted(async () => {
 }
 
 .toc-header {
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--text-secondary);
   letter-spacing: 1px;
   text-transform: uppercase;
   margin-bottom: 10px;
   padding-bottom: 8px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid var(--border-color);
 }
 
 .toc-nav {
@@ -252,19 +252,19 @@ onMounted(async () => {
 
   &:hover {
     color: var(--el-color-primary);
-    background: rgba(0, 212, 255, 0.08);
+    background: rgba(var(--color-primary-rgb), 0.08);
   }
 
   &.toc-active {
     color: var(--el-color-primary);
-    background: rgba(0, 212, 255, 0.12);
+    background: rgba(var(--color-primary-rgb), 0.12);
     font-weight: 500;
   }
 }
 
-.toc-h1 { padding-left: 8px; font-weight: 600; font-size: 13px; color: var(--text-primary); }
+.toc-h1 { padding-left: 8px; font-weight: 600; font-size: 14px; color: var(--text-primary); }
 .toc-h2 { padding-left: 16px; }
-.toc-h3 { padding-left: 26px; font-size: 12px; }
+.toc-h3 { padding-left: 26px; font-size: 13px; }
 
 // ── 右侧文档 ──
 .detail-content {
@@ -285,7 +285,7 @@ onMounted(async () => {
     color: var(--el-color-primary);
     margin: 0 0 16px 0;
     padding-bottom: 10px;
-    border-bottom: 1px solid rgba(0, 212, 255, 0.2);
+    border-bottom: 1px solid rgba(var(--color-primary-rgb), 0.2);
   }
 
   :deep(h2) {
@@ -319,18 +319,18 @@ onMounted(async () => {
   }
 
   :deep(code) {
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: var(--bg-muted);
+    border: 1px solid var(--border-color);
     border-radius: 4px;
     padding: 2px 6px;
     font-family: 'Cascadia Code', 'Fira Code', 'Courier New', monospace;
     font-size: 0.87em;
-    color: #7dd3fc;
+    color: var(--color-primary);
   }
 
   :deep(pre) {
-    background: rgba(0, 0, 0, 0.4);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: var(--bg-code);
+    border: 1px solid var(--border-color);
     border-radius: 8px;
     padding: 16px 20px;
     overflow-x: auto;
@@ -341,17 +341,17 @@ onMounted(async () => {
       border: none;
       padding: 0;
       font-size: 0.88em;
-      color: #e2e8f0;
+      color: var(--text-primary);
     }
   }
 
   :deep(blockquote) {
-    border-left: 3px solid rgba(0, 212, 255, 0.4);
+    border-left: 3px solid rgba(var(--color-primary-rgb), 0.4);
     margin: 12px 0;
     padding: 8px 16px;
-    background: rgba(0, 212, 255, 0.04);
+    background: rgba(var(--color-primary-rgb), 0.04);
     border-radius: 0 6px 6px 0;
-    color: #aaa;
+    color: var(--text-tertiary);
     font-style: italic;
   }
 
@@ -359,12 +359,12 @@ onMounted(async () => {
     border-collapse: collapse;
     width: 100%;
     margin: 12px 0;
-    font-size: 13px;
+    font-size: 14px;
   }
 
   :deep(th) {
-    background: rgba(0, 212, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(var(--color-primary-rgb), 0.1);
+    border: 1px solid var(--border-color);
     padding: 8px 14px;
     text-align: left;
     color: var(--el-color-primary);
@@ -372,18 +372,18 @@ onMounted(async () => {
   }
 
   :deep(td) {
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border: 1px solid var(--border-color);
     padding: 7px 14px;
     color: var(--text-secondary);
   }
 
   :deep(tr:hover td) {
-    background: rgba(255, 255, 255, 0.03);
+    background: var(--bg-muted);
   }
 
   :deep(hr) {
     border: none;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    border-top: 1px solid var(--border-color);
     margin: 20px 0;
   }
 

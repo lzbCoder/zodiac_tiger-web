@@ -125,7 +125,7 @@ onMounted(() => {
 <template>
   <div class="setting-view">
     <GlassCard>
-      <h2 class="text-glow-cyan" style="font-size:20px;letter-spacing:2px">系统设置</h2>
+      <h2 class="text-glow-cyan" style="font-size:20px">系统设置</h2>
     </GlassCard>
 
     <div class="setting-body">
@@ -187,7 +187,7 @@ onMounted(() => {
         <!-- 意图配置 -->
         <GlassCard v-if="activeMenu === 'intent'">
           <h3 class="section-title">意图展示配置</h3>
-          <p style="color:var(--text-secondary);font-size:13px;margin-bottom:16px">管理用户侧展示的能力名称、描述、示例话术，修改后前端自动生效。</p>
+          <p style="color:var(--text-secondary);font-size: 14px;margin-bottom:16px">管理用户侧展示的能力名称、描述、示例话术，修改后前端自动生效。</p>
           <div v-for="item in intentList" :key="item.intent_key" class="feature-item">
             <div class="feature-info">
               <div class="feature-name">
@@ -277,12 +277,12 @@ onMounted(() => {
   font-size: 14px;
 
   &:hover {
-    background: rgba(0, 238, 255, 0.05);
+    background: rgba(var(--color-primary-rgb), 0.05);
     color: var(--text-primary);
   }
 
   &.active {
-    background: rgba(0, 238, 255, 0.1);
+    background: rgba(var(--color-primary-rgb), 0.1);
     color: var(--neon-cyan);
   }
 }
@@ -303,9 +303,7 @@ onMounted(() => {
 .section-title {
   font-size: 16px;
   color: var(--neon-cyan);
-  margin-bottom: 20px;
-  letter-spacing: 2px;
-}
+  margin-bottom: 20px;}
 
 :deep(.el-form) {
   max-width: 500px;
@@ -317,14 +315,14 @@ onMounted(() => {
   justify-content: space-between;
   gap: 24px;
   padding: 20px;
-  border: 1px solid rgba(0, 238, 255, 0.12);
+  border: 1px solid rgba(var(--color-primary-rgb), 0.12);
   border-radius: 10px;
-  background: rgba(0, 238, 255, 0.03);
+  background: rgba(var(--color-primary-rgb), 0.03);
   transition: border-color 0.3s, background 0.3s;
 
   &:hover {
-    border-color: rgba(0, 238, 255, 0.25);
-    background: rgba(0, 238, 255, 0.05);
+    border-color: rgba(var(--color-primary-rgb), 0.25);
+    background: rgba(var(--color-primary-rgb), 0.05);
   }
 }
 
@@ -340,14 +338,14 @@ onMounted(() => {
 }
 
 .feature-desc {
-  font-size: 13px;
+  font-size: 14px;
   color: var(--text-secondary);
   line-height: 1.6;
   margin-bottom: 6px;
 }
 
 .feature-project {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--text-secondary);
 
   em {

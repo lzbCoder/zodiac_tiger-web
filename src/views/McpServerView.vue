@@ -539,9 +539,7 @@ onMounted(fetchList)
   justify-content: space-between;
 
   h2 {
-    font-size: 20px;
-    letter-spacing: 2px;
-  }
+    font-size: 20px;  }
 }
 
 .stats-row {
@@ -564,7 +562,7 @@ onMounted(fetchList)
 }
 
 .stat-label {
-  font-size: 13px;
+  font-size: 14px;
   color: var(--text-secondary);
   margin-top: 4px;
 }
@@ -572,7 +570,7 @@ onMounted(fetchList)
 .mcp-table {
   background: transparent;
   :deep(.el-table__header-wrapper th) {
-    background: rgba(0, 238, 255, 0.05);
+    background: rgba(var(--color-primary-rgb), 0.05);
   }
 }
 
@@ -624,7 +622,7 @@ onMounted(fetchList)
 }
 
 .status-text {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 500;
 }
 
@@ -651,12 +649,12 @@ onMounted(fetchList)
 }
 
 .form-label {
-  font-size: 13px;
+  font-size: 14px;
   color: #ccc;
 }
 
 .form-label-hint {
-  font-size: 11px;
+  font-size: 12px;
   color: #666;
   margin-left: 6px;
 }
@@ -676,7 +674,7 @@ onMounted(fetchList)
   margin-top: 4px;
   padding: 8px 12px;
   border-radius: 6px;
-  font-size: 13px;
+  font-size: 14px;
 
   &.result-ok {
     background: rgba(0, 255, 136, 0.08);
@@ -699,14 +697,14 @@ onMounted(fetchList)
 }
 
 .tool-count {
-  font-size: 13px;
+  font-size: 14px;
   color: #888;
 }
 
 .schema-pre {
-  font-size: 11px;
-  background: rgba(0, 0, 0, 0.3);
-  border: 1px solid rgba(0, 238, 255, 0.15);
+  font-size: 12px;
+  background: var(--bg-code);
+  border: 1px solid rgba(var(--color-primary-rgb), 0.15);
   border-radius: 4px;
   padding: 8px;
   margin-top: 4px;
@@ -729,7 +727,7 @@ onMounted(fetchList)
 }
 
 .bind-desc {
-  font-size: 13px;
+  font-size: 14px;
   color: #888;
   margin-bottom: 16px;
 }
@@ -743,8 +741,8 @@ onMounted(fetchList)
 
 .agent-item {
   padding: 8px 12px;
-  background: rgba(0, 238, 255, 0.04);
-  border: 1px solid rgba(0, 238, 255, 0.1);
+  background: rgba(var(--color-primary-rgb), 0.04);
+  border: 1px solid rgba(var(--color-primary-rgb), 0.1);
   border-radius: 6px;
 }
 </style>
@@ -752,17 +750,17 @@ onMounted(fetchList)
 <style lang="scss">
 .desc-tooltip.el-popper {
   max-width: 320px !important;
-  background: #1e2336 !important;
-  color: #e0e0e0 !important;
-  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  background: var(--bg-dialog) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--border-glow) !important;
   white-space: normal !important;
   word-break: break-word !important;
   line-height: 1.7 !important;
-  font-size: 13px !important;
+  font-size: 14px !important;
 
   .el-popper__arrow::before {
-    background: #1e2336 !important;
-    border-color: rgba(255, 255, 255, 0.12) !important;
+    background: var(--bg-dialog) !important;
+    border-color: var(--border-glow) !important;
   }
 }
 </style>

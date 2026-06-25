@@ -130,14 +130,14 @@ function onJump(q: QuestionItem) {
   width: 14px;
   height: 2px;
   border-radius: 1px;
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--bg-muted);
   transition: width 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
 }
 
 .bar-row:hover .bar-mark {
   width: 18px;
-  background: rgba(0, 238, 255, 0.4);
-  box-shadow: 0 0 4px rgba(0, 238, 255, 0.3);
+  background: rgba(var(--color-primary-rgb), 0.4);
+  box-shadow: 0 0 4px rgba(var(--color-primary-rgb), 0.3);
 }
 
 // 弹窗（与之前一致）
@@ -148,11 +148,11 @@ function onJump(q: QuestionItem) {
   transform: translateY(-50%);
   width: 200px;
   max-height: 360px;
-  background: rgba(10, 14, 23, 0.94);
+  background: var(--bg-dialog);
   backdrop-filter: blur(16px);
-  border: 1px solid rgba(0, 238, 255, 0.25);
+  border: 1px solid rgba(var(--color-primary-rgb), 0.25);
   border-radius: 10px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), 0 0 16px rgba(0, 238, 255, 0.08);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), 0 0 16px rgba(var(--color-primary-rgb), 0.08);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -160,11 +160,9 @@ function onJump(q: QuestionItem) {
 
 .popup-header {
   padding: 10px 14px 8px;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
-  color: var(--neon-cyan);
-  letter-spacing: 1px;
-  border-bottom: 1px solid rgba(0, 238, 255, 0.1);
+  color: var(--neon-cyan);  border-bottom: 1px solid rgba(var(--color-primary-rgb), 0.1);
   flex-shrink: 0;
 }
 
@@ -186,20 +184,20 @@ function onJump(q: QuestionItem) {
   transition: background 0.15s;
 
   &:hover {
-    background: rgba(0, 238, 255, 0.08);
+    background: rgba(var(--color-primary-rgb), 0.08);
   }
 }
 
 .item-index {
-  font-size: 10px;
-  color: rgba(255, 255, 255, 0.25);
+  font-size: 11px;
+  color: var(--text-placeholder);
   min-width: 16px;
   flex-shrink: 0;
 }
 
 .item-text {
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.65);
+  font-size: 13px;
+  color: var(--text-secondary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

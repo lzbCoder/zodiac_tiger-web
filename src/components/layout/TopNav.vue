@@ -54,16 +54,12 @@ function goHome() {
   align-items: center;
   justify-content: space-between;
   padding: 0 24px;
-  background: rgba(9, 8, 24, 0.85);
+  background: var(--bg-topbar);
   backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--border-color);
   z-index: 10;
   flex-shrink: 0;
   transition: background 0.4s, border-color 0.4s;
-
-  .theme-light & {
-    background: rgba(255, 255, 255, 0.9);
-  }
 }
 
 // ============ 品牌 Logo ============
@@ -114,7 +110,7 @@ function goHome() {
 }
 
 .brand-sub {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--text-secondary);
   letter-spacing: 1px;
 }

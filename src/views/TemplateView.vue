@@ -142,7 +142,6 @@ onMounted(fetchList)
 
   h2 {
     font-size: 20px;
-    letter-spacing: 2px;
   }
 }
 
@@ -154,20 +153,20 @@ onMounted(fetchList)
 
 .cat-tab {
   padding: 8px 20px;
-  border: 1px solid rgba(0, 238, 255, 0.2);
+  border: 1px solid rgba(var(--color-primary-rgb), 0.2);
   border-radius: 8px;
-  font-size: 13px;
+  font-size: 14px;
   color: var(--text-secondary);
   cursor: pointer;
   transition: all 0.3s;
 
   &:hover {
-    border-color: rgba(0, 238, 255, 0.4);
+    border-color: rgba(var(--color-primary-rgb), 0.4);
     color: var(--text-primary);
   }
 
   &.active {
-    background: rgba(0, 238, 255, 0.1);
+    background: rgba(var(--color-primary-rgb), 0.1);
     border-color: var(--neon-cyan);
     color: var(--neon-cyan);
   }

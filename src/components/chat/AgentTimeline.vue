@@ -243,25 +243,25 @@ function toggleThinking(step: AgentStep) {
 }
 
 .tl-name {
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.78);
+  color: var(--text-secondary);
 }
 
 .is-substep .tl-name {
-  font-size: 11px;
-  color: rgba(255, 255, 255, 0.62);
+  font-size: 12px;
+  color: var(--text-secondary);
 }
 
 .tl-cost {
-  font-size: 10px;
-  color: rgba(255, 255, 255, 0.35);
+  font-size: 11px;
+  color: var(--text-placeholder);
   flex-shrink: 0;
 }
 
 // 重试次数徽标
 .tl-retry {
-  font-size: 10px;
+  font-size: 11px;
   color: #ff9500;
   border: 1px solid rgba(255, 149, 0, 0.4);
   border-radius: 8px;
@@ -274,7 +274,7 @@ function toggleThinking(step: AgentStep) {
 .tl-stage-fold {
   margin-left: 2px;
   flex-shrink: 0;
-  color: rgba(255, 255, 255, 0.35);
+  color: var(--text-placeholder);
   transition: color 0.15s;
 
   .tl-head.clickable:hover & {
@@ -284,7 +284,7 @@ function toggleThinking(step: AgentStep) {
 
 // ------ 优化1：意图识别独立子行 ------
 .tl-intent-row {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--text-secondary);
   margin-left: 4px;
 
@@ -302,9 +302,9 @@ function toggleThinking(step: AgentStep) {
 }
 .tl-completed .tl-icon { color: #00ff88; }
 .tl-pending {
-  .tl-icon { color: rgba(255, 255, 255, 0.35); }
-  .tl-name { color: rgba(255, 255, 255, 0.5); }
-  .tl-dot { background: rgba(255, 255, 255, 0.35); }
+  .tl-icon { color: var(--text-placeholder); }
+  .tl-name { color: var(--text-tertiary); }
+  .tl-dot { background: var(--text-placeholder); }
 }
 .tl-fail, .tl-error {
   .tl-icon { color: #ff4444; }
@@ -313,7 +313,7 @@ function toggleThinking(step: AgentStep) {
 }
 .tl-terminated {
   .tl-icon { color: #ff9500; }
-  .tl-name { color: rgba(255, 255, 255, 0.4); text-decoration: line-through; }
+  .tl-name { color: var(--text-placeholder); text-decoration: line-through; }
   .tl-dot { background: #ff9500; }
 }
 
@@ -324,7 +324,7 @@ function toggleThinking(step: AgentStep) {
 .tl-attach {
   margin-left: 10px;
   padding-left: 8px;
-  border-left: 1px solid rgba(0, 238, 255, 0.12);
+  border-left: 1px solid rgba(var(--color-primary-rgb), 0.12);
   margin-top: 2px;
 }
 
@@ -332,14 +332,14 @@ function toggleThinking(step: AgentStep) {
   display: flex;
   align-items: center;
   gap: 5px;
-  font-size: 11px;
-  color: rgba(255, 255, 255, 0.5);
+  font-size: 12px;
+  color: var(--text-tertiary);
   padding: 1px 0;
 
   &.clickable { cursor: pointer; user-select: none; &:hover { color: var(--neon-cyan); } }
 }
 
-.tl-attach-ic { font-size: 11px; }
+.tl-attach-ic { font-size: 12px; }
 .tl-attach-title { font-weight: 500; }
 
 // 折叠箭头：紧贴文字右侧 8px，不贴面板边缘
@@ -374,8 +374,8 @@ function toggleThinking(step: AgentStep) {
   display: flex;
   align-items: center;
   gap: 5px;
-  font-size: 11px;
-  color: rgba(255, 255, 255, 0.5);
+  font-size: 12px;
+  color: var(--text-tertiary);
   padding: 1px 0;
   padding-left: 10px;
 
@@ -398,7 +398,7 @@ function toggleThinking(step: AgentStep) {
   height: 6px;
   border-radius: 50%;
   display: inline-block;
-  background: rgba(255, 255, 255, 0.4);
+  background: var(--text-placeholder);
 }
 
 .ts-completed .ts-dot-inner { background: #00ff88; }
@@ -407,9 +407,9 @@ function toggleThinking(step: AgentStep) {
 
 // 思考文本
 .tl-thinking-text {
-  font-size: 11px;
-  color: rgba(255, 255, 255, 0.55);
-  background: rgba(0, 238, 255, 0.03);
+  font-size: 12px;
+  color: var(--text-tertiary);
+  background: rgba(var(--color-primary-rgb), 0.03);
   padding: 5px 8px;
   border-radius: 4px;
   margin-top: 2px;
@@ -433,30 +433,30 @@ function toggleThinking(step: AgentStep) {
 // 工具展开详情
 .tl-tool-detail {
   margin-top: 2px;
-  font-size: 11px;
-  color: rgba(255, 255, 255, 0.55);
+  font-size: 12px;
+  color: var(--text-tertiary);
   margin-left: 10px;
 }
 .tl-kv { margin: 2px 0; }
-.tl-k { color: rgba(255, 255, 255, 0.4); }
+.tl-k { color: var(--text-placeholder); }
 .tl-tool-detail pre {
   margin: 2px 0 0;
   padding: 5px 8px;
-  background: rgba(0, 238, 255, 0.03);
+  background: rgba(var(--color-primary-rgb), 0.03);
   border-radius: 4px;
   max-height: 160px;
   overflow: auto;
   white-space: pre-wrap;
   word-break: break-all;
   font-family: 'Consolas', 'Monaco', monospace;
-  font-size: 10px;
+  font-size: 11px;
   color: var(--neon-cyan);
 }
 
 .tl-detail-text {
-  font-size: 11px;
-  color: rgba(255, 255, 255, 0.5);
-  background: rgba(0, 238, 255, 0.03);
+  font-size: 12px;
+  color: var(--text-tertiary);
+  background: rgba(var(--color-primary-rgb), 0.03);
   padding: 5px 8px;
   border-radius: 4px;
   margin-top: 2px;

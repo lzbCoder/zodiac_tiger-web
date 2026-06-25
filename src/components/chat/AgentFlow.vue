@@ -41,7 +41,7 @@ function toggle() {
 <style scoped lang="scss">
 .agent-flow {
   margin-bottom: 8px;
-  font-size: 12px;
+  font-size: 13px;
   width: 100%;
 }
 
@@ -49,7 +49,7 @@ function toggle() {
   display: flex;
   align-items: center;
   gap: 6px;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--text-tertiary);
   cursor: pointer;
   padding: 4px 0;
   transition: color 0.2s, text-shadow 0.2s;
@@ -57,7 +57,7 @@ function toggle() {
 
   &:hover {
     color: var(--neon-cyan);
-    text-shadow: 0 0 8px rgba(0, 238, 255, 0.3);
+    text-shadow: 0 0 8px rgba(var(--color-primary-rgb), 0.3);
   }
 }
 
@@ -70,8 +70,8 @@ function toggle() {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.5);
+  font-size: 13px;
+  color: var(--text-tertiary);
   margin-bottom: 8px;
   cursor: pointer;
   user-select: none;
@@ -89,7 +89,7 @@ function toggle() {
 }
 
 .flow-ic {
-  font-size: 13px;
+  font-size: 14px;
   flex-shrink: 0;
 }
 

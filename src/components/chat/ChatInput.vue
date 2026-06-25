@@ -164,8 +164,8 @@ function handleKeydown(e: KeyboardEvent) {
 <style scoped lang="scss">
 .chat-input-wrapper {
   padding: 16px 20px;
-  border-top: 1px solid rgba(0, 238, 255, 0.08);
-  background: rgba(9, 8, 24, 0.6);
+  border-top: 1px solid var(--border-color);
+  background: transparent;   /* 跟随中间正文背景，左右两侧与聊天区一致 */
   display: flex;
   justify-content: center;
 }
@@ -179,15 +179,15 @@ function handleKeydown(e: KeyboardEvent) {
   position: relative;
   display: flex;
   flex-direction: column;
-  background: rgba(18, 16, 37, 0.8);
-  border: 1px solid rgba(0, 238, 255, 0.15);
+  background: var(--bg-card);
+  border: 1px solid var(--input-border);
   border-radius: 12px;
   padding: 12px 68px 10px 16px;
   transition: all 0.3s;
 
   &:focus-within {
-    border-color: rgba(0, 238, 255, 0.4);
-    box-shadow: 0 0 20px rgba(0, 238, 255, 0.1);
+    border-color: rgba(var(--color-primary-rgb), 0.4);
+    box-shadow: 0 0 20px rgba(var(--color-primary-rgb), 0.1);
   }
 }
 
@@ -226,23 +226,23 @@ function handleKeydown(e: KeyboardEvent) {
   align-items: center;
   gap: 4px;
   padding: 0 10px;
-  font-size: 12px;
+  font-size: 13px;
   line-height: 1;
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--text-placeholder);
   background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid var(--border-color);
   border-radius: 14px;
   cursor: pointer;
   transition: all 0.2s;
   white-space: nowrap;
 
   &:hover {
-    border-color: rgba(0, 238, 255, 0.3);
-    color: rgba(255, 255, 255, 0.7);
+    border-color: rgba(var(--color-primary-rgb), 0.3);
+    color: var(--text-secondary);
   }
 
   &.active {
-    background: rgba(0, 238, 255, 0.15);
+    background: rgba(var(--color-primary-rgb), 0.15);
     border-color: var(--neon-cyan);
     color: var(--neon-cyan);
   }
@@ -287,7 +287,7 @@ function handleKeydown(e: KeyboardEvent) {
   color: #fff;
 
   &:hover:not(.disabled) {
-    box-shadow: 0 0 20px rgba(0, 238, 255, 0.4);
+    box-shadow: 0 0 20px rgba(var(--color-primary-rgb), 0.4);
     transform: scale(1.05);
   }
 
@@ -296,8 +296,8 @@ function handleKeydown(e: KeyboardEvent) {
   }
 
   &.disabled {
-    background: rgba(255, 255, 255, 0.08);
-    color: rgba(255, 255, 255, 0.3);
+    background: var(--bg-muted);
+    color: var(--text-placeholder);
     cursor: not-allowed;
     pointer-events: none;
   }
@@ -340,7 +340,7 @@ function handleKeydown(e: KeyboardEvent) {
 /* 去掉 Element 默认的浅色高亮，改用暗色主题的青色高亮 */
 .model-dropdown-popper .el-dropdown-menu__item:not(.is-disabled):hover,
 .model-dropdown-popper .el-dropdown-menu__item:not(.is-disabled):focus {
-  background-color: rgba(0, 238, 255, 0.12);
+  background-color: rgba(var(--color-primary-rgb), 0.12);
   color: var(--neon-cyan);
 }
 

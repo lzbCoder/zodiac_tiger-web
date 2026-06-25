@@ -193,7 +193,6 @@ onMounted(fetchList)
 
   h2 {
     font-size: 20px;
-    letter-spacing: 2px;
   }
 }
 
