@@ -86,6 +86,8 @@ const preview = computed(() => {
 <style scoped lang="scss">
 .template-card {
   padding: 16px;
+  display: flex;
+  flex-direction: column;
   transition: all 0.3s ease;
 
   &:hover {
@@ -139,6 +141,7 @@ const preview = computed(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  margin-top: auto;   /* 操作栏固定贴卡片底部，跨卡片垂直对齐 */
 }
 
 .card-actions {
