@@ -110,7 +110,7 @@ function handleKeydown(e: KeyboardEvent) {
 
           <!-- 模型选择：仅切换最终 AI 回复使用的模型 -->
           <el-dropdown trigger="click" placement="top-start" popper-class="model-dropdown-popper" @command="onSelectModel">
-            <span class="search-toggle model-select">
+            <span class="search-toggle model-select" :class="{ active: !!currentModel }">
               <el-icon :size="14"><Cpu /></el-icon>
               <span>模型</span>
               <span class="model-name">{{ currentModel }}</span>

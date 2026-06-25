@@ -64,8 +64,8 @@ export interface Session {
 }
 
 /** 前端内置的"最终 AI 回复"可选模型（均为阿里百炼模型，仅切换名称） */
-export const REPLY_MODELS = ['qwen3.7-plus', 'qwen3.6-flash', 'deepseek-v4-pro'] as const
-export const DEFAULT_REPLY_MODEL = 'qwen3.7-plus'
+export const REPLY_MODELS = ['qwen3.7-max', 'qwen3.6-flash', 'deepseek-v4-pro'] as const
+export const DEFAULT_REPLY_MODEL = 'qwen3.7-max'
 
 /** 推理型模型：思考恒开、无法关闭，必须展示思维链 */
 export const REASONING_MODELS = ['deepseek-v4-pro'] as const
@@ -190,7 +190,7 @@ export const useChatStore = defineStore('chat', () => {
   /** 新建会话能力选择弹窗 */
   const showNewSessionDialog = ref(false)
 
-  /** 用户选择的"最终 AI 回复"模型，localStorage 持久化，默认 qwen3.7-plus */
+  /** 用户选择的"最终 AI 回复"模型，localStorage 持久化，默认 qwen3.7-max */
   const _storedModel = localStorage.getItem(REPLY_MODEL_STORAGE_KEY)
   const replyModel = ref(
     _storedModel && (REPLY_MODELS as readonly string[]).includes(_storedModel)
