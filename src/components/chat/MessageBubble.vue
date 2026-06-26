@@ -435,7 +435,7 @@ watch(() => store.isStreaming, (val) => {
 .user-bubble {
   max-width: 100%;
   padding: 12px 16px;
-  font-size: 16px;
+  font-size: 15px;
   line-height: 1.7;
   color: var(--text-primary);
   word-break: break-word;
@@ -563,7 +563,7 @@ watch(() => store.isStreaming, (val) => {
 }
 
 .markdown-body {
-  font-size: 16px;
+  font-size: 15px;
   line-height: 1.8;
   color: var(--text-body);
   word-break: break-word;
