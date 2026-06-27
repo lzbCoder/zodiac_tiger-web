@@ -7,6 +7,7 @@ import EmptyState from '@/components/common/EmptyState.vue'
 import TemplateCard from '@/components/template/TemplateCard.vue'
 import TemplateEditor from '@/components/template/TemplateEditor.vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { copyText } from '@/utils'
 
 const templates = ref<any[]>([])
 const total = ref(0)
@@ -73,10 +74,14 @@ async function handleSave(data: Record<string, any>) {
   fetchList()
 }
 
-function handleUse(content: string) {
+async function handleUse(content: string) {
   // 复制内容到剪贴板，提示用户粘贴到聊天框
-  navigator.clipboard.writeText(content)
-  ElMessage.success('模板内容已复制，请粘贴到聊天输入框')
+  const ok = await copyText(content)
+  if (ok) {
+    ElMessage.success('模板内容已复制，请粘贴到聊天输入框')
+  } else {
+    ElMessage.error('复制失败')
+  }
 }
 
 function switchCategory(val: string) {

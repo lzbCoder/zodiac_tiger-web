@@ -5,6 +5,7 @@ import { computed, ref, onMounted, nextTick, watch } from 'vue'
 import MarkdownIt from 'markdown-it'
 import { ElMessage } from 'element-plus'
 import { CopyDocument, Check, Loading, ArrowDown, ArrowUp } from '@element-plus/icons-vue'
+import { copyText } from '@/utils'
 import * as echarts from 'echarts'
 import AgentFlow from './AgentFlow.vue'
 import ChatAlert from './ChatAlert.vue'
@@ -48,11 +49,11 @@ function handleSelect() {
 const copied = ref(false)
 
 async function copyMessage() {
-  try {
-    await navigator.clipboard.writeText(props.message.content || '')
+  const ok = await copyText(props.message.content || '')
+  if (ok) {
     copied.value = true
     setTimeout(() => { copied.value = false }, 2000)
-  } catch {
+  } else {
     ElMessage.error('复制失败')
   }
 }
@@ -82,11 +83,11 @@ function attachCopyButtons() {
     btn.className = 'code-copy-btn'
     btn.textContent = '复制'
     btn.onclick = async () => {
-      try {
-        await navigator.clipboard.writeText(block.textContent || '')
+      const ok = await copyText(block.textContent || '')
+      if (ok) {
         btn.textContent = '已复制'
         setTimeout(() => { btn.textContent = '复制' }, 2000)
-      } catch {
+      } else {
         btn.textContent = '失败'
         setTimeout(() => { btn.textContent = '复制' }, 2000)
       }
