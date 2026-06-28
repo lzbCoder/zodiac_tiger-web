@@ -4,8 +4,8 @@ import { getFileList, getFileTypes, getFileDownloadUrl, deleteFile } from '@/api
 import { ElMessageBox } from 'element-plus'
 import {
   Search, Download, Delete,
-  FolderOpened, Picture, Document, Grid,
-  Tickets, DataAnalysis, Monitor, Files, MagicStick,
+  FolderOpened, Grid,
+  Tickets, DataAnalysis, Monitor, MagicStick,
 } from '@element-plus/icons-vue'
 
 const files = ref<any[]>([])
@@ -21,10 +21,7 @@ const keyword = ref('')
 
 const typeIcons: Record<string, any> = {
   '全部': FolderOpened,
-  'PDF':  Document,
   '表格': Grid,
-  '图片': Picture,
-  '代码': Files,
   'PPT':  DataAnalysis,
   'HTML': Monitor,
   '文档': Tickets,
