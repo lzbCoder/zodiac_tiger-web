@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { computed, ref, onMounted } from 'vue'
+import MarkdownIt from 'markdown-it'
 import { WarningFilled } from '@element-plus/icons-vue'
-import { getErrorLog } from '@/api/chat'
+import { getErrorLog, diagnoseError } from '@/api/chat'
 
 const props = defineProps<{
   content: string
@@ -20,13 +21,19 @@ const kind = computed<'abort' | 'error' | null>(() => {
 
 // 错误详情（来自 execution_error_log）
 interface ErrInfo {
+  id: number
   error_node_display_name: string
   exception_type: string
   exception_info: string
   exception_stack: string
+  ai_diagnosis: string | null
 }
 const errInfo = ref<ErrInfo | null>(null)
 const dialogVisible = ref(false)
+
+// AI 诊断状态
+const diagnosing = ref(false)        // 诊断进行中（按钮加载动画）
+const diagnosis = ref('')            // 诊断结果 markdown 文本
 
 async function loadError() {
   if (kind.value !== 'error' || !props.chatId) return
@@ -34,13 +41,35 @@ async function loadError() {
     const res = await getErrorLog(props.chatId)
     const list = (res as any).data || []
     // 取最后一条（最贴近本轮失败节点）
-    if (list.length > 0) errInfo.value = list[list.length - 1]
+    if (list.length > 0) {
+      errInfo.value = list[list.length - 1]
+      // 回显：已有诊断结果则直接展示，按钮初始即为「已诊断」
+      diagnosis.value = errInfo.value?.ai_diagnosis || ''
+    }
   } catch {
     // 静默：详情查询失败不影响主提示展示
   }
 }
 
 onMounted(loadError)
+
+// 触发/重新触发 AI 诊断：首次与「已诊断」态重复点击共用此逻辑
+async function runDiagnose() {
+  if (!errInfo.value?.id || diagnosing.value) return
+  diagnosing.value = true
+  try {
+    const res = await diagnoseError(errInfo.value.id)
+    diagnosis.value = (res as any).data?.diagnosis || ''
+  } catch {
+    // 失败由全局拦截器提示，保留旧结果不清空
+  } finally {
+    diagnosing.value = false
+  }
+}
+
+// 诊断结果 markdown 渲染
+const md = new MarkdownIt({ html: false, linkify: true, breaks: true })
+const diagnosisHtml = computed(() => (diagnosis.value ? md.render(diagnosis.value) : ''))
 
 // 行内小字：type / info
 const inlineSubtext = computed(() => {
@@ -109,6 +138,23 @@ function openDetail() {
         class="err-stack"
       />
     </div>
+
+    <!-- AI 诊断结果面板：固定置于堆栈模块下方，独立深色区域，与上方字段分层隔离 -->
+    <div v-if="diagnosisHtml" class="ai-diagnosis-panel">
+      <div class="ai-diagnosis-title">AI 诊断结果</div>
+      <div class="ai-diagnosis-body markdown-body" v-html="diagnosisHtml"></div>
+    </div>
+
+    <!-- 右下角 AI 诊断按钮：加载态等待诊断完成；已有结果时文案变「已诊断」且可重复点击刷新 -->
+    <template #footer>
+      <el-button
+        type="primary"
+        :loading="diagnosing"
+        @click="runDiagnose"
+      >
+        {{ diagnosing ? '诊断中' : (diagnosis ? '已诊断' : 'AI 诊断') }}
+      </el-button>
+    </template>
   </el-dialog>
 </template>
 
@@ -194,5 +240,59 @@ function openDetail() {
   font-family: 'Consolas', 'Monaco', monospace;
   font-size: 13px;
   line-height: 1.6;
+}
+
+// AI 诊断结果：独立面板，沿用系统主题色（CSS 变量，随深/浅主题自适应），
+// 绿色（系统成功色）边框作为诊断结果的视觉标识，与上方错误字段分层隔离。
+.error-detail-dialog .ai-diagnosis-panel {
+  margin-top: 16px;
+  border: 1px solid rgba(var(--color-success-rgb), 0.45);
+  border-radius: 8px;
+  background: rgba(var(--color-success-rgb), 0.05);
+  box-shadow: 0 0 12px rgba(var(--color-success-rgb), 0.12);
+  overflow: hidden;
+}
+
+.error-detail-dialog .ai-diagnosis-title {
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-success);
+  background: rgba(var(--color-success-rgb), 0.1);
+  border-bottom: 1px solid rgba(var(--color-success-rgb), 0.25);
+}
+
+.error-detail-dialog .ai-diagnosis-body {
+  padding: 14px 16px;
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--text-body);
+  max-height: 360px;
+  overflow-y: auto;
+  word-break: break-word;
+
+  h2 {
+    margin: 12px 0 8px;
+    font-size: 15px;
+    color: var(--text-primary);
+  }
+  h2:first-child { margin-top: 0; }
+
+  p { margin: 6px 0; }
+
+  ol, ul {
+    margin: 6px 0;
+    padding-left: 22px;
+  }
+  li { margin: 4px 0; }
+
+  code {
+    padding: 2px 5px;
+    border-radius: 4px;
+    background: var(--bg-code);
+    color: var(--text-highlight);
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 13px;
+  }
 }
 </style>

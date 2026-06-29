@@ -16,6 +16,10 @@ export function getErrorLog(chatId: string) {
   return api.get(`/chat/error/${chatId}`)
 }
 
+export function diagnoseError(errorId: number) {
+  return api.post('/chat/diagnose', { error_id: errorId })
+}
+
 export function getSessionList() {
   return api.get('/chat/session/list')
 }
